@@ -14,6 +14,7 @@ import time
 import warnings
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 warnings.filterwarnings('ignore')
@@ -85,7 +86,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x, batch_y) in enumerate(train_loader):
+            for i, (batch_x, batch_y) in tqdm(enumerate(train_loader), ncols=40):
                 iter_count += 1
                 model_optim.zero_grad()
 
@@ -144,22 +145,25 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         if True:
 
-            def draw_reconstruction_results(self, test_inputs, test_outputs):
+            def draw_reconstruction_results(self, test_inputs, test_outputs, step, image_path):
+                print("Drawing the reconstruction results...")
+
                 # Draw the reconstruction results using matplotlib
                 for i in range(test_inputs.shape[2]):
-                    plt.figure(figsize=(30, 100))
+                    plt.figure(figsize=(100, 15))
                     plt.tight_layout()
                     plt.grid(True, axis='x')
                     
                     for w in range(test_inputs.shape[0]):
-                        data_x = np.arange(0, i + test_inputs.shape[1], 1)
-                        data_y1 = test_inputs[w, :, i]
-                        data_y2 = test_outputs[w, :, i]
+                        x_offset = w * step
+                        data_x = np.arange(x_offset, x_offset + test_inputs.shape[1], 1)
+                        data_y1 = test_outputs[w, :, i]
+                        data_y2 = test_inputs[w, :, i]
 
-                        plt.plot(data_x, data_y1, linewidth=0.5, color='green', alpha=0.2)
-                        plt.plot(data_x, data_y2, linewidth=0.5, color='red', alpha=0.2)
+                        plt.plot(data_x, data_y1, linewidth=1.0, color='orange', alpha=0.2)
+                        plt.plot(data_x, data_y2, linewidth=0.5, color='green', alpha=0.5)
                         
-                    plt.savefig('test_' + str(i) + '.png', dpi=200)
+                    plt.savefig(f'{image_path}/test_{i}.png', dpi=200)
 
             test_inputs = []
             test_outputs = []
@@ -174,9 +178,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
             test_inputs = np.concatenate(test_inputs, axis=0)
             test_outputs = np.concatenate(test_outputs, axis=0)
 
-            draw_reconstruction_results(self, test_inputs, test_outputs)
+            draw_reconstruction_results(self, test_inputs, test_outputs, folder_path)
 
-
+            del test_inputs, test_outputs
 
 
         # (1) stastic on the train set
@@ -217,12 +221,6 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
         test_labels = np.array(test_labels)
         gt = test_labels.astype(int)
-
-        print("pred:   ", pred.shape)
-        print("gt:     ", gt.shape)
-
-        # (4) detection adjustment
-        gt, pred = adjustment(gt, pred)
 
         pred = np.array(pred)
         gt = np.array(gt)
