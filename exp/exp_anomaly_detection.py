@@ -142,6 +142,43 @@ class Exp_Anomaly_Detection(Exp_Basic):
         self.model.eval()
         self.anomaly_criterion = nn.MSELoss(reduce=False)
 
+        if True:
+
+            def draw_reconstruction_results(self, test_inputs, test_outputs):
+                # Draw the reconstruction results using matplotlib
+                for i in range(test_inputs.shape[2]):
+                    plt.figure(figsize=(30, 100))
+                    plt.tight_layout()
+                    plt.grid(True, axis='x')
+                    
+                    for w in range(test_inputs.shape[0]):
+                        data_x = np.arange(0, i + test_inputs.shape[1], 1)
+                        data_y1 = test_inputs[w, :, i]
+                        data_y2 = test_outputs[w, :, i]
+
+                        plt.plot(data_x, data_y1, linewidth=0.5, color='green', alpha=0.2)
+                        plt.plot(data_x, data_y2, linewidth=0.5, color='red', alpha=0.2)
+                        
+                    plt.savefig('test_' + str(i) + '.png', dpi=200)
+
+            test_inputs = []
+            test_outputs = []
+            for i, (batch_x, batch_y) in enumerate(test_loader):
+                batch_x = batch_x.float().to(self.device)
+                # reconstruction
+                outputs = self.model(batch_x, None, None, None)
+
+                test_inputs.append(batch_x.detach().cpu().numpy())
+                test_outputs.append(outputs.detach().cpu().numpy())
+
+            test_inputs = np.concatenate(test_inputs, axis=0)
+            test_outputs = np.concatenate(test_outputs, axis=0)
+
+            draw_reconstruction_results(self, test_inputs, test_outputs)
+
+
+
+
         # (1) stastic on the train set
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(train_loader):
@@ -159,9 +196,6 @@ class Exp_Anomaly_Detection(Exp_Basic):
         # (2) find the threshold
         attens_energy = []
         test_labels = []
-
-        test_inputs = []
-        test_outputs = []
         for i, (batch_x, batch_y) in enumerate(test_loader):
             batch_x = batch_x.float().to(self.device)
             # reconstruction
@@ -171,12 +205,6 @@ class Exp_Anomaly_Detection(Exp_Basic):
             score = score.detach().cpu().numpy()
             attens_energy.append(score)
             test_labels.append(batch_y)
-
-            test_inputs.append(batch_x.detach().cpu())
-            test_outputs.append(outputs.detach().cpu())
-
-        test_inputs = torch.cat(test_inputs, dim=0).numpy()
-        test_outputs = torch.cat(test_outputs, dim=0).numpy()
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
