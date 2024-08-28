@@ -159,6 +159,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
         # (2) find the threshold
         attens_energy = []
         test_labels = []
+
+        test_inputs = []
+        test_outputs = []
         for i, (batch_x, batch_y) in enumerate(test_loader):
             batch_x = batch_x.float().to(self.device)
             # reconstruction
@@ -168,6 +171,12 @@ class Exp_Anomaly_Detection(Exp_Basic):
             score = score.detach().cpu().numpy()
             attens_energy.append(score)
             test_labels.append(batch_y)
+
+            test_inputs.append(batch_x.detach().cpu())
+            test_outputs.append(outputs.detach().cpu())
+
+        test_inputs = torch.cat(test_inputs, dim=0).numpy()
+        test_outputs = torch.cat(test_outputs, dim=0).numpy()
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
