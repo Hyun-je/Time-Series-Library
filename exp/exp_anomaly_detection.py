@@ -13,6 +13,8 @@ import os
 import time
 import warnings
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings('ignore')
 
@@ -97,10 +99,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
-                    print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                    # print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
-                    print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
+                    # print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
                     iter_count = 0
                     time_now = time.time()
 
