@@ -12,6 +12,7 @@ from torch import optim
 import os
 import time
 import warnings
+import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -75,6 +76,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
+        logging.basicConfig(filename=f"{self.args.checkpoints}/log.txt", level=logging.INFO)
+        logging.info(f"Args: {self.args}")
 
         time_now = time.time()
 
