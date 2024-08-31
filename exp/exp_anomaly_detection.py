@@ -143,46 +143,6 @@ class Exp_Anomaly_Detection(Exp_Basic):
         self.model.eval()
         self.anomaly_criterion = nn.MSELoss(reduce=False)
 
-        if True:
-
-            def draw_reconstruction_results(self, test_inputs, test_outputs, step, image_path):
-                print("Drawing the reconstruction results...")
-
-                # Draw the reconstruction results using matplotlib
-                for i in range(test_inputs.shape[2]):
-                    plt.figure(figsize=(100, 15))
-                    plt.tight_layout()
-                    plt.grid(True, axis='x')
-                    
-                    for w in range(test_inputs.shape[0]):
-                        x_offset = w * step
-                        data_x = np.arange(x_offset, x_offset + test_inputs.shape[1], 1)
-                        data_y1 = test_outputs[w, :, i]
-                        data_y2 = test_inputs[w, :, i]
-
-                        plt.plot(data_x, data_y1, linewidth=1.0, color='orange', alpha=0.2)
-                        plt.plot(data_x, data_y2, linewidth=0.5, color='green', alpha=0.5)
-                        
-                    plt.savefig(f'{image_path}/test_{i}.png', dpi=200)
-
-            test_inputs = []
-            test_outputs = []
-            for i, (batch_x, batch_y) in enumerate(test_loader):
-                batch_x = batch_x.float().to(self.device)
-                # reconstruction
-                outputs = self.model(batch_x, None, None, None)
-
-                test_inputs.append(batch_x.detach().cpu().numpy())
-                test_outputs.append(outputs.detach().cpu().numpy())
-
-            test_inputs = np.concatenate(test_inputs, axis=0)
-            test_outputs = np.concatenate(test_outputs, axis=0)
-
-            draw_reconstruction_results(self, test_inputs, test_outputs, folder_path)
-
-            del test_inputs, test_outputs
-
-
         # (1) stastic on the train set
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(train_loader):
@@ -242,3 +202,54 @@ class Exp_Anomaly_Detection(Exp_Basic):
         f.write('\n')
         f.close()
         return
+    
+    def prediction(self, setting):
+        pass
+
+    def visualization(self, setting):
+
+        def draw_reconstruction_results(self, test_inputs, test_outputs, step, image_path):
+            print("Drawing the reconstruction results...")
+
+            for i in range(test_inputs.shape[2]):
+                plt.figure(figsize=(100, 15))
+                plt.tight_layout()
+                plt.grid(True, axis='x')
+                
+                for w in range(test_inputs.shape[0]):
+                    x_offset = w * step
+                    data_x = np.arange(x_offset, x_offset + test_inputs.shape[1], 1)
+                    data_y1 = test_outputs[w, :, i]
+                    data_y2 = test_inputs[w, :, i]
+
+                    plt.plot(data_x, data_y1, linewidth=1.0, color='orange', alpha=0.2)
+                    plt.plot(data_x, data_y2, linewidth=0.5, color='green', alpha=0.5)
+                    
+                plt.savefig(f'{image_path}/test_{i}.png', dpi=200)
+
+
+        test_data, test_loader = self._get_data(flag='test')
+
+        print('loading model')
+        self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+        self.model.eval()
+
+        folder_path = './test_results/' + setting + '/'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        test_inputs = []
+        test_outputs = []
+        for i, (batch_x, batch_y) in enumerate(test_loader):
+            batch_x = batch_x.float().to(self.device)
+            # reconstruction
+            outputs = self.model(batch_x, None, None, None)
+
+            test_inputs.append(batch_x.detach().cpu().numpy())
+            test_outputs.append(outputs.detach().cpu().numpy())
+
+        test_inputs = np.concatenate(test_inputs, axis=0)
+        test_outputs = np.concatenate(test_outputs, axis=0)
+
+        draw_reconstruction_results(self, test_inputs, test_outputs, folder_path)
+
