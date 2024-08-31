@@ -86,7 +86,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x, batch_y) in tqdm(enumerate(train_loader), ncols=40):
+            for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
                 iter_count += 1
                 model_optim.zero_grad()
 
