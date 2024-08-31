@@ -300,5 +300,5 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_inputs = np.concatenate(test_inputs, axis=0)
         test_outputs = np.concatenate(test_outputs, axis=0)
 
-        draw_reconstruction_results(self, test_inputs, test_outputs, folder_path)
+        draw_reconstruction_results(self, test_inputs, test_outputs, test_loader.step, folder_path)
 
