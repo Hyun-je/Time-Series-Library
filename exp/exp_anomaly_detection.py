@@ -45,7 +45,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
             train_criterion = nn.MSELoss()
         elif self.args.loss == 'L1':
             train_criterion = nn.L1Loss()
-        val_criterion = nn.L1Loss()
+        val_criterion = nn.MSELoss()
         return train_criterion, val_criterion
     
     def _init_logger(self, path):
