@@ -47,6 +47,30 @@ class Exp_Anomaly_Detection(Exp_Basic):
             train_criterion = nn.L1Loss()
         val_criterion = nn.L1Loss()
         return train_criterion, val_criterion
+    
+    def _init_logger(self, path):
+
+        # Set up logging
+        self.logger = logging.getLogger('exp_logger')
+        self.logger.setLevel(logging.DEBUG)
+
+        # Create handlers
+        console_handler = logging.StreamHandler()
+        file_handler = logging.FileHandler(path)
+
+        # Set level for handlers
+        console_handler.setLevel(logging.INFO)
+        file_handler.setLevel(logging.DEBUG)
+
+        # Create formatters and add them to handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        # Add handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
+
 
     def vali(self, vali_data, vali_loader, criterion):
         total_loss = []
@@ -76,8 +100,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
-        logging.basicConfig(filename=f"{path}/log.txt", level=logging.INFO)
-        logging.info(f"Args: {self.args}")
+
+        self._init_logger(f"{path}/log.txt")
+        self.logger.info(f"Args: {self.args}")
 
         time_now = time.time()
 
@@ -117,12 +142,12 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 loss.backward()
                 model_optim.step()
 
-            logging.info(f"Epoch: {epoch + 1} cost time: {time.time() - epoch_time}")
+            self.logger.info(f"Epoch: {epoch + 1} cost time: {time.time() - epoch_time}")
             train_loss = np.average(train_loss)
             vali_loss = self.vali(vali_data, vali_loader, val_criterion)
             test_loss = self.vali(test_data, test_loader, val_criterion)
 
-            logging.info(f"Epoch: {epoch + 1}, Steps: {train_steps} | Train Loss: {train_loss:.7f} Vali Loss: {vali_loss:.7f} Test Loss: {test_loss:.7f}")
+            self.logger.info(f"Epoch: {epoch + 1}, Steps: {train_steps} | Train Loss: {train_loss:.7f} Vali Loss: {vali_loss:.7f} Test Loss: {test_loss:.7f}")
             early_stopping(
                 epoch,
                 {'train_loss': train_loss, 'vali_loss': vali_loss, 'test_loss': test_loss},
@@ -130,7 +155,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 path
             )
             if early_stopping.early_stop:
-                print("Early stopping")
+                self.logger.info(f"Early stopping")
                 break
             adjust_learning_rate(model_optim, epoch + 1, self.args)
 
