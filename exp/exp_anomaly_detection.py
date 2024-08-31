@@ -40,7 +40,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        criterion = nn.MSELoss()
+        if self.loss == 'MSE':
+            criterion = nn.MSELoss()
+        elif self.loss == 'L1':
+            criterion = nn.L1Loss()
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):

@@ -19,4 +19,5 @@ python -u run.py \
   --anomaly_ratio 1 \
   --batch_size 128 \
   --train_epochs 30 \
+  --loss MSE \
   --patience 15
