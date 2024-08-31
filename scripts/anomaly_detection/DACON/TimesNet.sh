@@ -17,7 +17,7 @@ python -u run.py \
   --c_out 51 \
   --top_k 3 \
   --anomaly_ratio 1 \
-  --batch_size 128 \
+  --batch_size 256 \
   --train_epochs 30 \
   --loss MSE \
   --patience 15
