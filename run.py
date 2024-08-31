@@ -190,6 +190,13 @@ if __name__ == '__main__':
 
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.test(setting)
+
+            print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            exp.visualize(setting)
+
+            print('>>>>>>>prediction : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            exp.prediction(setting)
+
             torch.cuda.empty_cache()
     else:
         ii = 0

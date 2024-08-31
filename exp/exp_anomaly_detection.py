@@ -76,7 +76,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         total_loss = []
         self.model.eval()
         with torch.no_grad():
-            for i, (batch_x, _) in enumerate(vali_loader):
+            for i, (batch_x, batch_y) in enumerate(tqdm(vali_loader, ncols=50)):
                 batch_x = batch_x.float().to(self.device)
 
                 outputs = self.model(batch_x, None, None, None)
@@ -181,7 +181,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         # (1) stastic on the train set
         with torch.no_grad():
-            for i, (batch_x, batch_y) in enumerate(train_loader):
+            for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
                 batch_x = batch_x.float().to(self.device)
                 # reconstruction
                 outputs = self.model(batch_x, None, None, None)
@@ -196,7 +196,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         # (2) find the threshold
         attens_energy = []
         test_labels = []
-        for i, (batch_x, batch_y) in enumerate(test_loader):
+        for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
             batch_x = batch_x.float().to(self.device)
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
@@ -240,9 +240,22 @@ class Exp_Anomaly_Detection(Exp_Basic):
         return
     
     def prediction(self, setting):
-        pass
 
-    def visualization(self, setting):
+        print('loading model')
+        self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
+        self.model.eval()
+
+        pred_data, pred_loader = self._get_data(flag='pred')
+
+        for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
+            batch_x = batch_x.float().to(self.device)
+            # reconstruction
+            outputs = self.model(batch_x, None, None, None)
+
+
+
+
+    def visualize(self, setting):
 
         def draw_reconstruction_results(self, test_inputs, test_outputs, step, image_path):
             print("Drawing the reconstruction results...")
@@ -267,7 +280,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_data, test_loader = self._get_data(flag='test')
 
         print('loading model')
-        self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+        self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
         self.model.eval()
 
         folder_path = './test_results/' + setting + '/'
@@ -276,7 +289,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         test_inputs = []
         test_outputs = []
-        for i, (batch_x, batch_y) in enumerate(test_loader):
+        for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
             batch_x = batch_x.float().to(self.device)
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
