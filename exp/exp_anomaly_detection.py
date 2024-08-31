@@ -41,10 +41,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
     def _select_criterion(self):
         if self.loss == 'MSE':
-            criterion = nn.MSELoss()
+            train_criterion = nn.MSELoss()
         elif self.loss == 'L1':
-            criterion = nn.L1Loss()
-        return criterion
+            train_criterion = nn.L1Loss()
+        val_criterion = nn.L1Loss()
+        return train_criterion, val_criterion
 
     def vali(self, vali_data, vali_loader, criterion):
         total_loss = []
@@ -81,7 +82,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion()
+        train_criterion, val_criterion = self._select_criterion()
 
         for epoch in range(self.args.train_epochs):
             iter_count = 0
@@ -99,7 +100,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, :, f_dim:]
-                loss = criterion(outputs, batch_x)
+                loss = train_criterion(outputs, batch_x)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -115,8 +116,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss = self.vali(vali_data, vali_loader, criterion)
-            test_loss = self.vali(test_data, test_loader, criterion)
+            vali_loss = self.vali(vali_data, vali_loader, val_criterion)
+            test_loss = self.vali(test_data, test_loader, val_criterion)
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
