@@ -247,6 +247,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         print("Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
             accuracy, precision,
             recall, f_score))
+        
+        from TaPR_pkg import etapr
+        TaPR = etapr.evaluate_haicon(gt, pred)
+        print(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+        print(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
 
         f = open("result_anomaly_detection.txt", 'a')
         f.write(setting + "  \n")
