@@ -15,11 +15,11 @@ class Model(nn.Module):
         """
         super(Model, self).__init__()
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len
+        self.seq_len = configs.seq_len // configs.downsample
         if self.task_name == 'classification' or self.task_name == 'anomaly_detection' or self.task_name == 'imputation':
-            self.pred_len = configs.seq_len
+            self.pred_len = configs.seq_len // configs.downsample
         else:
-            self.pred_len = configs.pred_len
+            self.pred_len = configs.pred_len // configs.downsample
         # Series decomposition block from Autoformer
         self.decompsition = series_decomp(configs.moving_avg)
         self.individual = individual
