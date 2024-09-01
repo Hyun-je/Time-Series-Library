@@ -8,6 +8,7 @@ def print_args(args):
     print(f'  {"Data:":<20}{args.data:<20}{"Root Path:":<20}{args.root_path:<20}')
     print(f'  {"Data Path:":<20}{args.data_path:<20}{"Features:":<20}{args.features:<20}')
     print(f'  {"Target:":<20}{args.target:<20}{"Freq:":<20}{args.freq:<20}')
+    print(f'  {"Downsample:":<20}{args.downsample:<20}')
     print(f'  {"Checkpoints:":<20}{args.checkpoints:<20}')
     print()
 

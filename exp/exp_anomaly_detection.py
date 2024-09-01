@@ -77,6 +77,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         self.model.eval()
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(vali_loader, ncols=50)):
+
+                # Downsample loaded data
+                batch_x = batch_x[:, ::self.args.downsample, :]
+                batch_y = batch_y[:, ::self.args.downsample, :]
+
                 batch_x = batch_x.float().to(self.device)
 
                 outputs = self.model(batch_x, None, None, None)
@@ -121,6 +126,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
             for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
                 iter_count += 1
                 model_optim.zero_grad()
+
+                # Downsample loaded data
+                batch_x = batch_x[:, ::self.args.downsample, :]
+                batch_y = batch_y[:, ::self.args.downsample, :]
 
                 batch_x = batch_x.float().to(self.device)
 
@@ -182,6 +191,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         # (1) stastic on the train set
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
+
+                # Downsample loaded data
+                batch_x = batch_x[:, ::self.args.downsample, :]
+                batch_y = batch_y[:, ::self.args.downsample, :]
+
                 batch_x = batch_x.float().to(self.device)
                 # reconstruction
                 outputs = self.model(batch_x, None, None, None)
@@ -197,6 +211,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         attens_energy = []
         test_labels = []
         for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
+
+            # Downsample loaded data
+            batch_x = batch_x[:, ::self.args.downsample, :]
+            batch_y = batch_y[:, ::self.args.downsample, :]
+
             batch_x = batch_x.float().to(self.device)
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
@@ -248,6 +267,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         pred_data, pred_loader = self._get_data(flag='pred')
 
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
+
+            # Downsample loaded data
+            batch_x = batch_x[:, ::self.args.downsample, :]
+            batch_y = batch_y[:, ::self.args.downsample, :]
+
             batch_x = batch_x.float().to(self.device)
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
@@ -290,6 +314,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_inputs = []
         test_outputs = []
         for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
+
+            # Downsample loaded data
+            batch_x = batch_x[:, ::self.args.downsample, :]
+            batch_y = batch_y[:, ::self.args.downsample, :]
+
             batch_x = batch_x.float().to(self.device)
             # reconstruction
             outputs = self.model(batch_x, None, None, None)

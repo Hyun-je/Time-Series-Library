@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
     parser.add_argument('--freq', type=str, default='h',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
+    parser.add_argument('--downsample', type=int, default=1, help='downsampling ratio for input data')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
 
     # forecasting task
@@ -164,15 +165,16 @@ if __name__ == '__main__':
         for ii in range(args.itr):
             # setting record of experiments
             exp = Exp(args)  # set experiments
-            setting = '{}_{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_expand{}_dc{}_fc{}_eb{}_dt{}_{}_{}'.format(
-                args.task_name,
-                args.model_id,
+            setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_ds{}_dm{}_nh{}_el{}_dl{}_df{}_expand{}_dc{}_fc{}_eb{}_dt{}_{}_{}'.format(
+                # args.task_name,
+                # args.model_id,
                 args.model,
                 args.data,
                 args.features,
                 args.seq_len,
                 args.label_len,
                 args.pred_len,
+                args.downsample,
                 args.d_model,
                 args.n_heads,
                 args.e_layers,
@@ -200,15 +202,16 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
     else:
         ii = 0
-        setting = '{}_{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_expand{}_dc{}_fc{}_eb{}_dt{}_{}_{}'.format(
-            args.task_name,
-            args.model_id,
+        setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_ds{}_dm{}_nh{}_el{}_dl{}_df{}_expand{}_dc{}_fc{}_eb{}_dt{}_{}_{}'.format(
+            # args.task_name,
+            # args.model_id,
             args.model,
             args.data,
             args.features,
             args.seq_len,
             args.label_len,
             args.pred_len,
+            args.downsample,
             args.d_model,
             args.n_heads,
             args.e_layers,
