@@ -190,9 +190,9 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.configs = configs
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len
+        self.seq_len = configs.seq_len // configs.downsample
         self.label_len = configs.label_len
-        self.pred_len = configs.pred_len
+        self.pred_len = configs.pred_len // configs.downsample
         self.down_sampling_window = configs.down_sampling_window
         self.channel_independence = configs.channel_independence
         self.pdm_blocks = nn.ModuleList([PastDecomposableMixing(configs)
