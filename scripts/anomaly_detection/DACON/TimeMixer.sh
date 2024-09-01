@@ -14,13 +14,13 @@ python -u run.py \
   --down_sampling_layers 3 \
   --down_sampling_method avg \
   --down_sampling_window 2 \
-  --d_model 128 \
-  --d_ff 128 \
+  --d_model 64 \
+  --d_ff 64 \
   --e_layers 3 \
   --enc_in 51 \
   --c_out 51 \
   --top_k 3 \
   --anomaly_ratio 1 \
-  --batch_size 256 \
+  --batch_size 64 \
   --train_epochs 30 \
   --patience 10
