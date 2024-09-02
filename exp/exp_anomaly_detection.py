@@ -229,7 +229,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_energy = np.array(attens_energy)
         combined_energy = np.concatenate([train_energy, test_energy], axis=0)
         threshold = np.percentile(combined_energy, 100 - self.args.anomaly_ratio)
-        print("Threshold :", threshold)
+        self.logger.info(f"Threshold : {threshold}")
 
         # (3) evaluation on the test set
         pred = (test_energy > threshold).astype(int)
@@ -239,19 +239,17 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         pred = np.array(pred)
         gt = np.array(gt)
-        print("pred: ", pred.shape)
-        print("gt:   ", gt.shape)
+        self.logger.info(f"pred: {pred.shape}")
+        self.logger.info(f"gt:   {gt.shape}")
 
         accuracy = accuracy_score(gt, pred)
         precision, recall, f_score, support = precision_recall_fscore_support(gt, pred, average='binary')
-        print("Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
-            accuracy, precision,
-            recall, f_score))
+        self.logger.info(f"Accuracy : {accuracy:0.4f}, Precision : {precision:0.4f}, Recall : {recall:0.4f}, F-score : {f_score:0.4f} ")
         
         from TaPR_pkg import etapr
         TaPR = etapr.evaluate_haicon(gt, pred)
-        print(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
-        print(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+        self.logger.info(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+        self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
 
         f = open("result_anomaly_detection.txt", 'a')
         f.write(setting + "  \n")
