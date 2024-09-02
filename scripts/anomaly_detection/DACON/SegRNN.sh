@@ -10,6 +10,7 @@ python -u run.py \
   --features M \
   --seq_len 100 \
   --pred_len 0 \
+  --seg_len 20 \
   --downsample 1 \
   --d_model 128 \
   --d_ff 128 \
