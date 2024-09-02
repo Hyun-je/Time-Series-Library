@@ -8,15 +8,16 @@ python -u run.py \
   --model SegRNN \
   --data PSM \
   --features M \
-  --seq_len 100 \
+  --seq_len 720 \
   --pred_len 0 \
-  --seg_len 20 \
+  --seg_len 48 \
   --downsample 1 \
-  --d_model 128 \
-  --d_ff 128 \
+  --d_model 512 \
+  --d_ff 256 \
   --e_layers 3 \
   --enc_in 51 \
   --c_out 51 \
+  --dropout 0.1 \
   --top_k 3 \
   --anomaly_ratio 1 \
   --batch_size 256 \
