@@ -1,0 +1,23 @@
+# export CUDA_VISIBLE_DEVICES=6
+
+python -u run.py \
+  --task_name anomaly_detection \
+  --is_training 1 \
+  --root_path ./dataset/DACON \
+  --model_id DACON \
+  --model DLinear \
+  --data PSMSingle \
+  --features M \
+  --seq_len 100 \
+  --pred_len 100 \
+  --downsample 1 \
+  --d_model 128 \
+  --d_ff 128 \
+  --e_layers 3 \
+  --enc_in 1 \
+  --c_out 1 \
+  --anomaly_ratio 1 \
+  --batch_size 256 \
+  --train_epochs 10 \
+  --loss MSE \
+  --patience 15

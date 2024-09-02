@@ -253,9 +253,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         f = open("result_anomaly_detection.txt", 'a')
         f.write(setting + "  \n")
-        f.write("Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
-            accuracy, precision,
-            recall, f_score))
+        f.write(f"Accuracy : {accuracy:0.4f}, Precision : {precision:0.4f}, Recall : {recall:0.4f}, F-score : {f_score:0.4f}\n")
+        f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
+        f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
         f.write('\n')
         f.write('\n')
         f.close()
@@ -298,10 +298,11 @@ class Exp_Anomaly_Detection(Exp_Basic):
                     data_y1 = test_outputs[w, :, i]
                     data_y2 = test_inputs[w, :, i]
 
-                    plt.plot(data_x, data_y1, linewidth=1.0, color='orange', alpha=0.2)
-                    plt.plot(data_x, data_y2, linewidth=0.5, color='green', alpha=0.5)
+                    plt.plot(data_x, data_y2, linewidth=0.1, color='magenta', alpha=1.0)
+                    plt.plot(data_x, data_y1, linewidth=3.0, color='cyan', alpha=0.1)
                     
-                plt.savefig(f'{image_path}/test_{i}.png', dpi=200)
+                    
+                plt.savefig(f'{image_path}/test_{i}.png', dpi=300)
 
 
         test_data, test_loader = self._get_data(flag='test')
