@@ -18,6 +18,6 @@ python -u run.py \
   --c_out 51 \
   --anomaly_ratio 1 \
   --batch_size 256 \
-  --train_epochs 30 \
+  --train_epochs 10 \
   --loss MSE \
   --patience 15

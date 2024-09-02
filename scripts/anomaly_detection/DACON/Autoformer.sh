@@ -19,5 +19,5 @@ python -u run.py \
   --top_k 3 \
   --anomaly_ratio 1 \
   --batch_size 256 \
-  --train_epochs 30 \
+  --train_epochs 10 \
   --patience 15
