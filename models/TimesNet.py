@@ -21,8 +21,8 @@ def FFT_for_Period(x, k=2):
 class TimesBlock(nn.Module):
     def __init__(self, configs):
         super(TimesBlock, self).__init__()
-        self.seq_len = configs.seq_len
-        self.pred_len = configs.pred_len
+        self.seq_len = configs.seq_len // configs.downsample
+        self.pred_len = configs.pred_len // configs.downsample
         self.k = configs.top_k
         # parameter-efficient design
         self.conv = nn.Sequential(
