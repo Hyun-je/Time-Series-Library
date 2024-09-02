@@ -17,7 +17,7 @@ class Model(nn.Module):
     def __init__(self, configs):
         super(Model, self).__init__()
         self.task_name = configs.task_name
-        self.pred_len = configs.pred_len // configs.downsample
+        self.pred_len = configs.pred_len
         self.output_attention = configs.output_attention
         # Embedding
         self.enc_embedding = DataEmbedding(configs.enc_in, configs.d_model, configs.embed, configs.freq,

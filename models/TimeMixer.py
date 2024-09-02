@@ -38,13 +38,13 @@ class MultiScaleSeasonMixing(nn.Module):
             [
                 nn.Sequential(
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** (i + 1)),
+                        configs.seq_len // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** (i + 1)),
                     ),
                     nn.GELU(),
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** (i + 1)),
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** (i + 1)),
+                        configs.seq_len // (configs.down_sampling_window ** (i + 1)),
+                        configs.seq_len // (configs.down_sampling_window ** (i + 1)),
                     ),
 
                 )
@@ -82,13 +82,13 @@ class MultiScaleTrendMixing(nn.Module):
             [
                 nn.Sequential(
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** (i + 1)),
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** (i + 1)),
+                        configs.seq_len // (configs.down_sampling_window ** i),
                     ),
                     nn.GELU(),
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** i),
                     ),
                 )
                 for i in reversed(range(configs.down_sampling_layers))
@@ -118,8 +118,8 @@ class MultiScaleTrendMixing(nn.Module):
 class PastDecomposableMixing(nn.Module):
     def __init__(self, configs):
         super(PastDecomposableMixing, self).__init__()
-        self.seq_len = configs.seq_len // configs.downsample
-        self.pred_len = configs.pred_len // configs.downsample
+        self.seq_len = configs.seq_len
+        self.pred_len = configs.pred_len
         self.down_sampling_window = configs.down_sampling_window
 
         self.layer_norm = nn.LayerNorm(configs.d_model)
@@ -190,9 +190,9 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.configs = configs
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len // configs.downsample
+        self.seq_len = configs.seq_len
         self.label_len = configs.label_len
-        self.pred_len = configs.pred_len // configs.downsample
+        self.pred_len = configs.pred_len
         self.down_sampling_window = configs.down_sampling_window
         self.channel_independence = configs.channel_independence
         self.pdm_blocks = nn.ModuleList([PastDecomposableMixing(configs)
@@ -221,8 +221,8 @@ class Model(nn.Module):
             self.predict_layers = torch.nn.ModuleList(
                 [
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
-                        configs.pred_len // configs.downsample,
+                        configs.seq_len // (configs.down_sampling_window ** i),
+                        configs.pred_len,
                     )
                     for i in range(configs.down_sampling_layers + 1)
                 ]
@@ -237,8 +237,8 @@ class Model(nn.Module):
 
                 self.out_res_layers = torch.nn.ModuleList([
                     torch.nn.Linear(
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
-                        configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** i),
+                        configs.seq_len // (configs.down_sampling_window ** i),
                     )
                     for i in range(configs.down_sampling_layers + 1)
                 ])
@@ -246,8 +246,8 @@ class Model(nn.Module):
                 self.regression_layers = torch.nn.ModuleList(
                     [
                         torch.nn.Linear(
-                            configs.seq_len // configs.downsample // (configs.down_sampling_window ** i),
-                            configs.pred_len // configs.downsample,
+                            configs.seq_len // (configs.down_sampling_window ** i),
+                            configs.pred_len,
                         )
                         for i in range(configs.down_sampling_layers + 1)
                     ]
@@ -264,7 +264,7 @@ class Model(nn.Module):
             self.act = F.gelu
             self.dropout = nn.Dropout(configs.dropout)
             self.projection = nn.Linear(
-                configs.d_model * configs.seq_len // configs.downsample, configs.num_class)
+                configs.d_model * configs.seq_len, configs.num_class)
 
     def out_projection(self, dec_out, i, out_res):
         dec_out = self.projection_layer(dec_out)

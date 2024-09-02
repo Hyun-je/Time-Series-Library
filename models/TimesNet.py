@@ -21,8 +21,8 @@ def FFT_for_Period(x, k=2):
 class TimesBlock(nn.Module):
     def __init__(self, configs):
         super(TimesBlock, self).__init__()
-        self.seq_len = configs.seq_len // configs.downsample
-        self.pred_len = configs.pred_len // configs.downsample
+        self.seq_len = configs.seq_len
+        self.pred_len = configs.pred_len
         self.k = configs.top_k
         # parameter-efficient design
         self.conv = nn.Sequential(
@@ -76,8 +76,8 @@ class Model(nn.Module):
     def __init__(self, configs):
         super(Model, self).__init__()
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len // configs.downsample
-        self.pred_len = configs.pred_len // configs.downsample
+        self.seq_len = configs.seq_len
+        self.pred_len = configs.pred_len
         self.model = nn.ModuleList([TimesBlock(configs)
                                     for _ in range(configs.e_layers)])
         self.enc_embedding = DataEmbedding(configs.enc_in, configs.d_model, configs.embed, configs.freq,

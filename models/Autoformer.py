@@ -18,9 +18,9 @@ class Model(nn.Module):
     def __init__(self, configs):
         super(Model, self).__init__()
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len // configs.downsample
+        self.seq_len = configs.seq_len
         self.label_len = configs.label_len
-        self.pred_len = configs.pred_len // configs.downsample
+        self.pred_len = configs.pred_len
         self.output_attention = configs.output_attention
 
         # Decomp
