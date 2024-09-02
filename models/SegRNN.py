@@ -13,16 +13,16 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         # get parameters
-        self.seq_len = configs.seq_len
+        self.seq_len = configs.seq_len // configs.downsample
         self.enc_in = configs.enc_in
         self.d_model = configs.d_model
         self.dropout = configs.dropout
 
         self.task_name = configs.task_name
         if self.task_name == 'classification' or self.task_name == 'anomaly_detection' or self.task_name == 'imputation':
-            self.pred_len = configs.seq_len
+            self.pred_len = configs.seq_len // configs.downsample
         else:
-            self.pred_len = configs.pred_len
+            self.pred_len = configs.pred_len // configs.downsample
 
         self.seg_len = configs.seg_len
         self.seg_num_x = self.seq_len // self.seg_len
