@@ -229,6 +229,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_energy = np.array(attens_energy)
         combined_energy = np.concatenate([train_energy, test_energy], axis=0)
         threshold = np.percentile(combined_energy, 100 - self.args.anomaly_ratio)
+        self.threshold = threshold
         self.logger.info(f"Threshold : {threshold}")
 
         # (3) evaluation on the test set
@@ -248,7 +249,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         
         from TaPR_pkg import etapr
         TaPR = etapr.evaluate_haicon(gt, pred)
-        self.logger.info(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+        self.logger.info(f"test F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
         self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
 
         f = open("result_anomaly_detection.txt", 'a')
@@ -269,15 +270,55 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         pred_data, pred_loader = self._get_data(flag='pred')
 
+        attens_energy = []
+        test_labels = []
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
 
             # Downsample loaded data
             batch_x = batch_x[:, ::self.args.downsample, :]
-            batch_y = batch_y[:, ::self.args.downsample, :]
+            batch_y = batch_y[:, :, :]
 
             batch_x = batch_x.float().to(self.device)
+
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
+
+            # criterion
+            score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
+            score = score.detach().cpu().numpy()
+            attens_energy.append(score)
+            test_labels.append(batch_y)
+
+        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
+        test_energy = np.array(attens_energy)
+
+        # (3) evaluation on the test set
+        pred = (test_energy > self.threshold).astype(int)
+        test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
+        test_labels = np.array(test_labels)
+        gt = test_labels.astype(int)
+
+        pred = np.array(pred)
+        gt = np.array(gt)
+
+        # Upsample
+        pred = np.repeat(pred, self.args.downsample, axis=0)
+        self.logger.info(f"pred: {pred.shape}")
+        self.logger.info(f"gt:   {gt.shape}")
+
+        from TaPR_pkg import etapr
+        TaPR = etapr.evaluate_haicon(gt, pred)
+        self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+        self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+        # export results
+        folder_path = './test_results/' + setting + '/'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        sample_submission = pd.read_csv("dataset/DACON/sample_submission.csv")
+        sample_submission['anomaly'] = pred
+        sample_submission.to_csv(f'{folder_path}/submission.csv', encoding='UTF-8-sig', index=False)
 
 
 

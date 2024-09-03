@@ -193,11 +193,11 @@ if __name__ == '__main__':
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.test(setting)
 
-            print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-            exp.visualize(setting)
-
             print('>>>>>>>prediction : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.prediction(setting)
+
+            print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            exp.visualize(setting)
 
             torch.cuda.empty_cache()
     else:
@@ -228,10 +228,10 @@ if __name__ == '__main__':
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         exp.test(setting, test=1)
 
-        print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-        exp.visualize(setting)
-
         print('>>>>>>>prediction : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         exp.prediction(setting)
+
+        print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+        exp.visualize(setting)
 
         torch.cuda.empty_cache()
