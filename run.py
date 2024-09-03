@@ -10,11 +10,19 @@ from utils.print_args import print_args
 import random
 import numpy as np
 
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed+1)
+    torch.manual_seed(seed+2)
+    torch.cuda.manual_seed(seed+3)
+    torch.cuda.manual_seed_all(seed+4)
+    os.environ['PYTHONHASHSEED'] = str(seed+5)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+
 if __name__ == '__main__':
     fix_seed = 2021
-    random.seed(fix_seed)
-    torch.manual_seed(fix_seed)
-    np.random.seed(fix_seed)
+    set_random_seed(fix_seed)
 
     parser = argparse.ArgumentParser(description='TimesNet')
 
