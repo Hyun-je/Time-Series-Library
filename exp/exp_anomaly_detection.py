@@ -318,8 +318,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         sample_submission = pd.read_csv("dataset/DACON/sample_submission.csv")
         sample_submission['anomaly'] = pred
-        sample_submission.to_csv(f'{folder_path}/submission.csv', encoding='UTF-8-sig', index=False)
-
+        sample_submission.to_csv(f'{folder_path}/pred.csv', encoding='UTF-8-sig', index=False)
+        sample_submission['anomaly'] = gt
+        sample_submission.to_csv(f'{folder_path}/gt.csv', encoding='UTF-8-sig', index=False)
 
 
 
