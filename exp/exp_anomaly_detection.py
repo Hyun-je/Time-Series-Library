@@ -98,6 +98,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
         return total_loss
 
     def train(self, setting):
+
+        self.start_time = time.localtime()
+
         train_data, train_loader = self._get_data(flag='train')
         vali_data, vali_loader = self._get_data(flag='val')
         test_data, test_loader = self._get_data(flag='test')
@@ -246,20 +249,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         accuracy = accuracy_score(gt, pred)
         precision, recall, f_score, support = precision_recall_fscore_support(gt, pred, average='binary')
         self.logger.info(f"Accuracy : {accuracy:0.4f}, Precision : {precision:0.4f}, Recall : {recall:0.4f}, F-score : {f_score:0.4f} ")
-        
-        from TaPR_pkg import etapr
-        TaPR = etapr.evaluate_haicon(gt, pred)
-        self.logger.info(f"test F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
-        self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
 
-        f = open("result_anomaly_detection.txt", 'a')
-        f.write(setting + "  \n")
-        f.write(f"Accuracy : {accuracy:0.4f}, Precision : {precision:0.4f}, Recall : {recall:0.4f}, F-score : {f_score:0.4f}\n")
-        f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
-        f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
-        f.write('\n')
-        f.write('\n')
-        f.close()
         return
     
     def prediction(self, setting):
@@ -306,10 +296,21 @@ class Exp_Anomaly_Detection(Exp_Basic):
         self.logger.info(f"pred: {pred.shape}")
         self.logger.info(f"gt:   {gt.shape}")
 
+        # Calculate TaPR
         from TaPR_pkg import etapr
         TaPR = etapr.evaluate_haicon(gt, pred)
         self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
         self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+        f = open("result_anomaly_detection.txt", 'a')
+        f.write(setting + "  \n")
+        f.write(f"{self.start_time.tm_year}/{self.start_time.tm_mon}/{self.start_time.tm_mday} {self.start_time.tm_hour}:{self.start_time.tm_min}:{self.start_time.tm_sec}\n")
+        f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
+        f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
+        f.write('\n')
+        f.write('\n')
+        f.close()
+
 
         # export results
         folder_path = './test_results/' + setting + '/'
