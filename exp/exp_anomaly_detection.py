@@ -18,6 +18,8 @@ import pandas as pd
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+from TaPR_pkg import etapr
+
 warnings.filterwarnings('ignore')
 
 
@@ -108,6 +110,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
+
+        if self.args.resume is not None:
+            self.logger.info(f"Resume training from {self.args.resume}")
+            self.model.load_state_dict(torch.load(f'{path}/{self.args.resume}'))
 
         self._init_logger(f"{path}/log.txt")
         self.logger.info(f"Args: {self.args}")
@@ -283,28 +289,36 @@ class Exp_Anomaly_Detection(Exp_Basic):
         test_energy = np.array(attens_energy)
 
         # (3) evaluation on the test set
-        pred = (test_energy > self.threshold).astype(int)
         test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
         test_labels = np.array(test_labels)
         gt = test_labels.astype(int)
-
-        pred = np.array(pred)
         gt = np.array(gt)
-
-        # Upsample
-        pred = np.repeat(pred, self.args.downsample, axis=0)
-        self.logger.info(f"pred: {pred.shape}")
         self.logger.info(f"gt:   {gt.shape}")
 
-        # Calculate TaPR
-        from TaPR_pkg import etapr
-        TaPR = etapr.evaluate_haicon(gt, pred)
-        self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
-        self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+        best_TaPR = None
+        best_threshold = None
+        threshold_list = [self.threshold]
+        for threshold in threshold_list:
+
+            pred = (test_energy > threshold).astype(int)
+            pred = np.array(pred)
+            pred = np.repeat(pred, self.args.downsample, axis=0) # Upsample
+            self.logger.info(f"pred: {pred.shape}")
+            
+            # Calculate TaPR
+            TaPR = etapr.evaluate_haicon(gt, pred)
+            self.logger.info(f"Threshold: {threshold}")
+            self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+            self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+            if best_TaPR is None or best_TaPR['f1'] < TaPR['f1']:
+                best_TaPR = TaPR
+                best_threshold = threshold
 
         f = open("result_anomaly_detection.txt", 'a')
         f.write(setting + "  \n")
         f.write(f"{self.start_time.tm_year}/{self.start_time.tm_mon}/{self.start_time.tm_mday} {self.start_time.tm_hour}:{self.start_time.tm_min}:{self.start_time.tm_sec}\n")
+        f.write(f"Threshold: {best_threshold}\n")
         f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
         f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
         f.write('\n')
