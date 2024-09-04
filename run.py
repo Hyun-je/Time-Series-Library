@@ -21,8 +21,6 @@ def set_random_seed(seed):
     torch.backends.cudnn.benchmark = True
 
 if __name__ == '__main__':
-    fix_seed = 2021
-    set_random_seed(fix_seed)
 
     parser = argparse.ArgumentParser(description='TimesNet')
 
@@ -123,7 +121,7 @@ if __name__ == '__main__':
     
     # Augmentation
     parser.add_argument('--augmentation_ratio', type=int, default=0, help="How many times to augment")
-    parser.add_argument('--seed', type=int, default=2, help="Randomization seed")
+    parser.add_argument('--seed', type=int, default=2024, help="Randomization seed")
     parser.add_argument('--jitter', default=False, action="store_true", help="Jitter preset augmentation")
     parser.add_argument('--scaling', default=False, action="store_true", help="Scaling preset augmentation")
     parser.add_argument('--permutation', default=False, action="store_true", help="Equal Length Permutation preset augmentation")
@@ -144,6 +142,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
     args.use_gpu = True if torch.cuda.is_available() else False
+
+    set_random_seed(args.seed)
 
     print(torch.cuda.is_available())
 
@@ -204,8 +204,8 @@ if __name__ == '__main__':
             print('>>>>>>>prediction : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.prediction(setting)
 
-            print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-            exp.visualize(setting)
+            # print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            # exp.visualize(setting)
 
             torch.cuda.empty_cache()
     else:
@@ -239,7 +239,7 @@ if __name__ == '__main__':
         print('>>>>>>>prediction : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         exp.prediction(setting)
 
-        print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-        exp.visualize(setting)
+        # print('>>>>>>>visualize : {} finished <<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+        # exp.visualize(setting)
 
         torch.cuda.empty_cache()
