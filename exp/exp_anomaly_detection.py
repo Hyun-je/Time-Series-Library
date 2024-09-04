@@ -112,8 +112,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
             os.makedirs(path)
 
         if self.args.resume is not None:
-            self.logger.info(f"Resume training from {self.args.resume}")
-            self.model.load_state_dict(torch.load(f'{path}/{self.args.resume}'))
+            print(f"Resume training from {self.args.resume}")
+            self.model.load_state_dict(torch.load(self.args.resume))
 
         self._init_logger(f"{path}/log.txt")
         self.logger.info(f"Args: {self.args}")
