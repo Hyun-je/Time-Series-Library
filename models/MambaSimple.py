@@ -46,10 +46,29 @@ class Model(nn.Module):
         x_out = x_out * std_enc + mean_enc
         return x_out
 
+    def anomaly_detection(self, x_enc):
+        mean_enc = x_enc.mean(1, keepdim=True).detach()
+        x_enc = x_enc - mean_enc
+        std_enc = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5).detach()
+        x_enc = x_enc / std_enc
+
+        x = self.embedding(x_enc, None)
+        for layer in self.layers:
+            x = layer(x)
+
+        x = self.norm(x)
+        x_out = self.out_layer(x)
+
+        x_out = x_out * std_enc + mean_enc
+        return x_out
+
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
         if self.task_name in ['short_term_forecast', 'long_term_forecast']:
             x_out = self.forecast(x_enc, x_mark_enc)
             return x_out[:, -self.pred_len:, :]
+        if self.task_name == 'anomaly_detection':
+            dec_out = self.anomaly_detection(x_enc)
+            return dec_out  # [B, L, D]
 
 
 class ResidualBlock(nn.Module):
