@@ -142,18 +142,24 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 batch_y = batch_y[:, ::self.args.downsample, :]
 
                 batch_x = batch_x.float().to(self.device)
-                batch_x_original = batch_x.detach().clone()
 
-                impulse_noise = (torch.rand(batch_x.shape) < 0.1).float().to(self.device)
-                channel_mask = torch.ones_like(batch_x)
-                channel_mask[:, :, random.randrange(0, batch_x.shape[2])] = 0
-                batch_x_masked = batch_x * impulse_noise * channel_mask
+                if False:
+                    batch_x_original = batch_x.detach().clone()
+
+                    impulse_noise = (torch.rand(batch_x.shape) < 0.1).float().to(self.device)
+                    channel_mask = torch.ones_like(batch_x).float().to(self.device)
+                    channel_mask[:, :, random.randrange(0, batch_x.shape[2])] = 0
+                    batch_x_masked = batch_x * impulse_noise * channel_mask
+                else:
+                    batch_x_masked = batch_x
+                    batch_x_original = batch_x
+
 
                 outputs = self.model(batch_x_masked, None, None, None)
 
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, :, f_dim:]
-                loss = train_criterion(outputs, batch_x_original) * channel_mask
+                loss = train_criterion(outputs, batch_x_original)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
