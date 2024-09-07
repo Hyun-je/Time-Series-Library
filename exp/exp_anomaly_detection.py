@@ -294,7 +294,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
             else:
                 x_slice_range = range(win_size//4, win_size//4*3)
-                x_slice_range = range(win_sizeself.args.downsample//4, win_sizeself.args.downsample//4*3)
+                x_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample//4*3)
 
             score = torch.mean(self.anomaly_criterion(batch_x[:,x_slice_range,:], outputs[:,x_slice_range,:]), dim=-1)
             score = score.detach().cpu().numpy().reshape(-1)
