@@ -183,6 +183,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
         return self.model
 
     def test(self, setting, test=0):
+
+        self.args.batch_size = 64
+
         test_data, test_loader = self._get_data(flag='test')
         train_data, train_loader = self._get_data(flag='train')
         if test:
@@ -260,6 +263,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
     
     def prediction(self, setting):
 
+        self.args.batch_size = 1
+
         print('loading model')
         self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
         self.model.eval()
@@ -280,10 +285,21 @@ class Exp_Anomaly_Detection(Exp_Basic):
             outputs = self.model(batch_x, None, None, None)
 
             # criterion
-            score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
-            score = score.detach().cpu().numpy()
+            win_size = batch_x.shape[1]
+            if i == 0:
+                x_slice_range = range(0, win_size//4*3)
+                y_slice_range = range(0, win_size*self.args.downsample//4*3)
+            elif i == len(pred_loader) - 1:
+                x_slice_range = range(win_size//4, win_size)
+                y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
+            else:
+                x_slice_range = range(win_size//4, win_size//4*3)
+                x_slice_range = range(win_sizeself.args.downsample//4, win_sizeself.args.downsample//4*3)
+
+            score = torch.mean(self.anomaly_criterion(batch_x[:,x_slice_range,:], outputs[:,x_slice_range,:]), dim=-1)
+            score = score.detach().cpu().numpy().reshape(-1)
             attens_energy.append(score)
-            test_labels.append(batch_y)
+            test_labels.append(batch_y[:,y_slice_range,:].reshape(-1))
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)

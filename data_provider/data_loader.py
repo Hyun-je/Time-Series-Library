@@ -389,7 +389,7 @@ class Dataset_M4(Dataset):
 class PSMSegLoader(Dataset):
     def __init__(self, args, root_path, win_size, step=1, flag="train"):
         self.flag = flag
-        self.step = {'train': step, 'val': 10, 'test': win_size, 'pred': win_size}[flag]
+        self.step = {'train': step, 'val': 10, 'test': win_size, 'pred': win_size // 2}[flag]
         self.win_size = win_size
         self.scaler = StandardScaler()
         data = pd.read_csv(os.path.join(root_path, 'train.csv'))
@@ -416,21 +416,30 @@ class PSMSegLoader(Dataset):
         elif (self.flag == 'test'):
             return (self.test.shape[0] - self.win_size) // self.step + 1
         else:
-            return (self.test.shape[0] - self.win_size) // self.win_size + 1
+            return (self.test.shape[0] - self.win_size) // self.step + 1
 
     def __getitem__(self, index):
         index = index * self.step
         if self.flag == "train":
-            return np.float32(self.train[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
+            return (
+                np.float32(self.train[index:index + self.win_size]),
+                np.float32(self.test_labels[0:self.win_size])
+            )
         elif (self.flag == 'val'):
-            return np.float32(self.val[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
+            return (
+                np.float32(self.val[index:index + self.win_size]),
+                np.float32(self.test_labels[0:self.win_size])
+            )
         elif (self.flag == 'test'):
-            return np.float32(self.test[index:index + self.win_size]), np.float32(
-                self.test_labels[index:index + self.win_size])
+            return (
+                np.float32(self.test[index:index + self.win_size]),
+                np.float32(self.test_labels[index:index + self.win_size])
+            )
         else:
-            return np.float32(self.test[
-                              index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]), np.float32(
-                self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
+            return (
+                np.float32(self.test[index:index + self.win_size]),
+                np.float32(self.test_labels[index:index + self.win_size])
+            )
 
 class PSMSingleLoader(Dataset):
     def __init__(self, args, root_path, win_size, step=1, flag="train"):
