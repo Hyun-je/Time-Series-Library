@@ -463,12 +463,13 @@ class DACONLoader(Dataset):
         data = self.scaler.transform(data)
         self.test = self.scaler.transform(test_data)
 
-        self.train = data
+        self.train = data[:(int)(data_len * 0.9)]
         data_len = len(self.train)
-        self.val = self.train[(int)(data_len * 0.8):]
+        self.val = data[(int)(data_len * 0.9):]
         self.test_labels = pd.read_csv(os.path.join(root_path, 'test_label.csv')).values[:, 1:]
 
         print("train:", self.train.shape)
+        print("val:", self.val.shape)
         print("test:", self.test.shape)
 
     def __len__(self):
@@ -497,12 +498,12 @@ class DACONLoader(Dataset):
         elif (self.flag == 'test'):
             return (
                 np.float32(self.test[index:index + self.seq_len]),
-                np.float32(self.test_labels[index + self.seq_len:index + self.seq_len + self.pred_len]),
+                np.float32(self.test[index + self.seq_len:index + self.seq_len + self.pred_len]),
             )
         else:
             return (
                 np.float32(self.test[index:index + self.seq_len]),
-                np.float32(self.test_labels[index + self.seq_len:index + self.seq_len + self.pred_len]),
+                np.float32(self.test[index + self.seq_len:index + self.seq_len + self.pred_len]),
             )
 
 

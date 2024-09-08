@@ -205,7 +205,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
                 outputs = self.model(batch_x, None, None, None)
 
                 # criterion
-                score = torch.mean(self.anomaly_criterion(batch_x, batch_y), dim=-1)
+                score = torch.mean(self.anomaly_criterion(outputs, batch_y), dim=-1)
                 score = score.detach().cpu().numpy()
                 attens_energy.append(score)
 
@@ -214,41 +214,6 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         self.logger.info(f"train_energy : {train_energy.shape}")
         threshold = np.percentile(train_energy, 100 - self.args.anomaly_ratio)
         self.logger.info(f"Threshold : {threshold}")
-
-        # (2) evaluation on the test set
-        attens_energy = []
-        test_labels = []
-        for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
-            batch_x = batch_x.float().to(self.device)
-            batch_y = batch_x.float().to(self.device)
-
-            # forcast
-            outputs = self.model(batch_x, None, None, None)
-
-            # criterion
-            score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
-            score = score.detach().cpu().numpy()
-            attens_energy.append(score)
-            test_labels.append(batch_y)
-
-        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
-        test_energy = np.array(attens_energy)
-        self.logger.info(f"test_energy : {train_energy.shape}")
-
-        # (3) evaluation on the test set
-        pred = (test_energy > threshold).astype(int)
-        test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
-        test_labels = np.array(test_labels)
-        gt = test_labels.astype(int)
-
-        pred = np.array(pred)
-        gt = np.array(gt)
-        self.logger.info(f"pred: {pred.shape}")
-        self.logger.info(f"gt:   {gt.shape}")
-
-        accuracy = accuracy_score(gt, pred)
-        precision, recall, f_score, support = precision_recall_fscore_support(gt, pred, average='binary')
-        self.logger.info(f"Accuracy : {accuracy:0.4f}, Precision : {precision:0.4f}, Recall : {recall:0.4f}, F-score : {f_score:0.4f} ")
 
         return
     
@@ -265,72 +230,24 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         attens_energy = []
         test_labels = []
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
-
-            # Downsample loaded data
-            batch_x = batch_x[:, ::self.args.downsample, :]
-            batch_y = batch_y[:, :, :]
-
             batch_x = batch_x.float().to(self.device)
+            batch_y = batch_x.float().to(self.device)
 
-            # reconstruction
+            # forcast
             outputs = self.model(batch_x, None, None, None)
 
             # criterion
-            win_size = batch_x.shape[1]
-            if i == 0:
-                x_slice_range = range(0, win_size//4*3)
-                y_slice_range = range(0, win_size*self.args.downsample//4*3)
-            elif i == len(pred_loader) - 1:
-                x_slice_range = range(win_size//4, win_size)
-                y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
-            else:
-                x_slice_range = range(win_size//4, win_size//4*3)
-                y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample//4*3)
-
-            score = torch.mean(self.anomaly_criterion(batch_x[:,x_slice_range,:], outputs[:,x_slice_range,:]), dim=-1)
+            score = torch.mean(self.anomaly_criterion(outputs, batch_y), dim=-1)
             score = score.detach().cpu().numpy().reshape(-1)
             attens_energy.append(score)
-            test_labels.append(batch_y[:,y_slice_range,:].reshape(-1))
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
+        self.logger.info(f"test_energy : {test_energy.shape}")
 
-        # (3) evaluation on the test set
-        test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
-        test_labels = np.array(test_labels)
-        gt = test_labels.astype(int)
-        gt = np.array(gt)
-        self.logger.info(f"gt:   {gt.shape}")
-
-        best_TaPR = None
-        best_threshold = None
-        threshold_list = [self.threshold]
-        for threshold in threshold_list:
-
-            pred = (test_energy > threshold).astype(int)
-            pred = np.array(pred)
-            pred = np.repeat(pred, self.args.downsample, axis=0) # Upsample
-            self.logger.info(f"pred: {pred.shape}")
-            
-            # Calculate TaPR
-            TaPR = etapr.evaluate_haicon(gt, pred)
-            self.logger.info(f"Threshold: {threshold}")
-            self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
-            self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
-
-            if best_TaPR is None or best_TaPR['f1'] < TaPR['f1']:
-                best_TaPR = TaPR
-                best_threshold = threshold
-
-        f = open("result_anomaly_detection.txt", 'a')
-        f.write(setting + "  \n")
-        f.write(f"{self.start_time.tm_year}/{self.start_time.tm_mon}/{self.start_time.tm_mday} {self.start_time.tm_hour}:{self.start_time.tm_min}:{self.start_time.tm_sec}\n")
-        f.write(f"Threshold: {best_threshold}\n")
-        f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
-        f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
-        f.write('\n')
-        f.write('\n')
-        f.close()
+        pred = (test_energy > self.threshold).astype(int)
+        pred = np.array(pred)
+        self.logger.info(f"pred: {pred.shape}")
 
 
         # export results
@@ -341,8 +258,26 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         sample_submission = pd.read_csv("dataset/DACON/sample_submission.csv")
         sample_submission['anomaly'] = pred
         sample_submission.to_csv(f'{folder_path}/pred.csv', encoding='UTF-8-sig', index=False)
-        sample_submission['anomaly'] = gt
-        sample_submission.to_csv(f'{folder_path}/gt.csv', encoding='UTF-8-sig', index=False)
+
+        # # Calculate TaPR
+        # TaPR = etapr.evaluate_haicon(gt, pred)
+        # self.logger.info(f"Threshold: {threshold}")
+        # self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+        # self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+        # sample_submission['anomaly'] = gt
+        # sample_submission.to_csv(f'{folder_path}/gt.csv', encoding='UTF-8-sig', index=False)
+
+        # f = open("result_anomaly_detection.txt", 'a')
+        # f.write(setting + "  \n")
+        # f.write(f"{self.start_time.tm_year}/{self.start_time.tm_mon}/{self.start_time.tm_mday} {self.start_time.tm_hour}:{self.start_time.tm_min}:{self.start_time.tm_sec}\n")
+        # f.write(f"Threshold: {best_threshold}\n")
+        # f.write(f"F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})\n")
+        # f.write(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}\n")
+        # f.write('\n')
+        # f.write('\n')
+        # f.close()
+
 
 
 
