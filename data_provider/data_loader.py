@@ -450,27 +450,26 @@ class DACONLoader(Dataset):
         self.pred_len = pred_len
         self.win_size = seq_len + pred_len
 
-        data = pd.read_csv(os.path.join(root_path, 'train.csv'))
-        data = data.values[:, 1:]
-        data = np.nan_to_num(data)
-
-        test_data = pd.read_csv(os.path.join(root_path, 'test.csv'))
-        test_data = test_data.values[:, 1:]
-        test_data = np.nan_to_num(test_data)
+        train_data = pd.read_csv(os.path.join(root_path, 'train.csv'))
+        train_data = train_data.values[:, 1:]   # remove timestamp
+        train_data = np.nan_to_num(train_data)
 
         self.scaler = StandardScaler()
-        self.scaler.fit(data)
-        data = self.scaler.transform(data)
-        self.test = self.scaler.transform(test_data)
+        self.scaler.fit(train_data)
+        train_data = self.scaler.transform(train_data)
 
-        data_len = len(data)
-        self.train = data[:(int)(data_len * 0.9)]
-        self.val = data[(int)(data_len * 0.9):]
-        self.test_labels = pd.read_csv(os.path.join(root_path, 'test_label.csv')).values[:, 1:]
-
+        data_len = len(train_data)
+        self.train = train_data[:(int)(data_len * 0.9)]
+        self.val = train_data[(int)(data_len * 0.9):]
         print("train:", self.train.shape)
         print("val:", self.val.shape)
-        print("test:", self.test.shape)
+        
+        if flag == 'test' or flag == 'pred':
+            test_data = pd.read_csv(os.path.join(root_path, 'test.csv'))
+            test_data = test_data.values[:, 1:]    # remove timestamp
+            test_data = np.nan_to_num(test_data)
+            self.test = self.scaler.transform(test_data)
+            print("test:", self.test.shape)
 
     def __len__(self):
         if self.flag == "train":
