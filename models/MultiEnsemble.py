@@ -14,7 +14,7 @@ class BasicForcaster(torch.nn.Module):
         self.encoder = torch.nn.Linear(configs.seq_len, configs.pred_len)
 
     def forward(self, x_enc, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
-        out = self.encoder(x_enc)
+        out = self.encoder(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
         return out
 
 
