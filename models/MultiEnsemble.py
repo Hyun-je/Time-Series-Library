@@ -28,7 +28,7 @@ class Model(torch.nn.Module):
 
         self.configs_1 = copy.deepcopy(configs)
         self.configs_1.task_name = 'short_term_forecast'
-        self.configs_1.seq_len = configs.seq_len
+        self.configs_1.seq_len = configs.seq_len//1
         self.configs_1.pred_len = configs.pred_len
         self.configs_1.moving_avg = 100
         self.configs_1.enc_in = 51
