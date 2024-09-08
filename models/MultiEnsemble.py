@@ -22,7 +22,7 @@ class Model(torch.nn.Module):
         self.configs_1.pred_len = configs.pred_len
         self.configs_1.moving_avg = 100
         self.configs_1.enc_in = 51
-        self.forcast_1 = DLinear(self.config_1)
+        self.forcast_1 = DLinear(self.configs_1)
 
         self.configs_2 = copy.deepcopy(configs)
         self.configs_2.task_name = 'short_term_forecast'
@@ -30,7 +30,7 @@ class Model(torch.nn.Module):
         self.configs_2.pred_len = configs.pred_len
         self.configs_2.moving_avg = 50
         self.configs_2.enc_in = 51
-        self.forcast_2 = DLinear(self.config_2)
+        self.forcast_2 = DLinear(self.configs_2)
 
         self.configs_4 = copy.deepcopy(configs)
         self.configs_4.task_name = 'short_term_forecast'
@@ -38,7 +38,7 @@ class Model(torch.nn.Module):
         self.configs_4.pred_len = configs.pred_len
         self.configs_4.moving_avg = 25
         self.configs_4.enc_in = 51
-        self.forcast_4 = DLinear(self.config_4)
+        self.forcast_4 = DLinear(self.configs_4)
 
         self.configs_8 = copy.deepcopy(configs)
         self.configs_8.task_name = 'short_term_forecast'
@@ -46,7 +46,7 @@ class Model(torch.nn.Module):
         self.configs_8.pred_len = configs.pred_len
         self.configs_8.moving_avg = 12
         self.configs_8.enc_in = 51
-        self.forcast_8 = DLinear(self.config_8)
+        self.forcast_8 = DLinear(self.configs_8)
 
     def forward(self, x):
 
