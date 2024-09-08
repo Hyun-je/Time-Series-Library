@@ -258,14 +258,17 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         sample_submission['anomaly'] = pred
         sample_submission.to_csv(f'{folder_path}/pred.csv', encoding='UTF-8-sig', index=False)
 
-        # # Calculate TaPR
-        # TaPR = etapr.evaluate_haicon(gt, pred)
-        # self.logger.info(f"Threshold: {threshold}")
-        # self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
-        # self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+        # Calculate TaPR
+        if True:
+            gt = pd.read_csv("dataset/DACON/test_label.csv")["anomaly"]
+            self.logger.info(f"pred: {gt.shape}")
 
-        # sample_submission['anomaly'] = gt
-        # sample_submission.to_csv(f'{folder_path}/gt.csv', encoding='UTF-8-sig', index=False)
+            TaPR = etapr.evaluate_haicon(gt, pred)
+            self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
+            self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+            sample_submission['anomaly'] = gt
+            sample_submission.to_csv(f'{folder_path}/gt.csv', encoding='UTF-8-sig', index=False)
 
         # f = open("result_anomaly_detection.txt", 'a')
         # f.write(setting + "  \n")
