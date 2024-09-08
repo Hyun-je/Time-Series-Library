@@ -198,7 +198,6 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         # (1) stastic on the train set
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
-
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_x.float().to(self.device)
 
@@ -212,19 +211,20 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         train_energy = np.array(attens_energy)
+        self.logger.info(f"train_energy : {train_energy.shape}")
+        threshold = np.percentile(train_energy, 100 - self.args.anomaly_ratio)
+        self.logger.info(f"Threshold : {threshold}")
 
-        # (2) find the threshold
+        # (2) evaluation on the test set
         attens_energy = []
         test_labels = []
         for i, (batch_x, batch_y) in enumerate(tqdm(test_loader, ncols=50)):
-
-            # Downsample loaded data
-            batch_x = batch_x[:, ::self.args.downsample, :]
-            batch_y = batch_y[:, ::self.args.downsample, :]
-
             batch_x = batch_x.float().to(self.device)
-            # reconstruction
+            batch_y = batch_x.float().to(self.device)
+
+            # forcast
             outputs = self.model(batch_x, None, None, None)
+
             # criterion
             score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
             score = score.detach().cpu().numpy()
@@ -233,10 +233,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
-        combined_energy = np.concatenate([train_energy, test_energy], axis=0)
-        threshold = np.percentile(combined_energy, 100 - self.args.anomaly_ratio)
-        self.threshold = threshold
-        self.logger.info(f"Threshold : {threshold}")
+        self.logger.info(f"test_energy : {train_energy.shape}")
 
         # (3) evaluation on the test set
         pred = (test_energy > threshold).astype(int)
