@@ -179,7 +179,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
 
     def test(self, setting, test=0):
 
-        self.args.batch_size = 64
+        # self.args.batch_size = 64
 
         test_data, test_loader = self._get_data(flag='test')
         train_data, train_loader = self._get_data(flag='train')
@@ -219,7 +219,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
     
     def prediction(self, setting):
 
-        self.args.batch_size = 1
+        # self.args.batch_size = 1
 
         print('loading model')
         self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
