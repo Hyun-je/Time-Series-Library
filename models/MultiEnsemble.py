@@ -7,6 +7,16 @@ from models.TimesNet import Model as TimesNet
 from models.DLinear import Model as DLinear
 from layers.Autoformer_EncDec import series_decomp
 
+class BasicForcaster(torch.nn.Module):
+
+    def __init__(self, configs):
+        super(BasicForcaster, self).__init__()
+        self.encoder = torch.nn.Linear(self.configs.seq_len, self.configs.pred_len)
+
+    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
+        out = self.encoder(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
+        return out
+
 
 class Model(torch.nn.Module):
 
@@ -22,7 +32,7 @@ class Model(torch.nn.Module):
         self.configs_1.pred_len = configs.pred_len
         self.configs_1.moving_avg = 100
         self.configs_1.enc_in = 51
-        self.forcast_1 = DLinear(self.configs_1)
+        self.forcast_1 = BasicForcaster(self.configs_1)
 
         self.configs_2 = copy.deepcopy(configs)
         self.configs_2.task_name = 'short_term_forecast'
@@ -30,7 +40,7 @@ class Model(torch.nn.Module):
         self.configs_2.pred_len = configs.pred_len
         self.configs_2.moving_avg = 50
         self.configs_2.enc_in = 51
-        self.forcast_2 = DLinear(self.configs_2)
+        self.forcast_2 = BasicForcaster(self.configs_2)
 
         self.configs_4 = copy.deepcopy(configs)
         self.configs_4.task_name = 'short_term_forecast'
@@ -38,7 +48,7 @@ class Model(torch.nn.Module):
         self.configs_4.pred_len = configs.pred_len
         self.configs_4.moving_avg = 25
         self.configs_4.enc_in = 51
-        self.forcast_4 = DLinear(self.configs_4)
+        self.forcast_4 = BasicForcaster(self.configs_4)
 
         self.configs_8 = copy.deepcopy(configs)
         self.configs_8.task_name = 'short_term_forecast'
@@ -46,7 +56,7 @@ class Model(torch.nn.Module):
         self.configs_8.pred_len = configs.pred_len
         self.configs_8.moving_avg = 12
         self.configs_8.enc_in = 51
-        self.forcast_8 = DLinear(self.configs_8)
+        self.forcast_8 = BasicForcaster(self.configs_8)
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
 
