@@ -48,7 +48,7 @@ class Model(torch.nn.Module):
         self.configs_8.enc_in = 51
         self.forcast_8 = DLinear(self.configs_8)
 
-    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
+    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
 
         B = x_enc.shape[0]  # batch size
         C = x_enc.shape[1]  # number of channels
