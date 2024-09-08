@@ -65,6 +65,6 @@ class Model(torch.nn.Module):
         out_4 = self.forcast_4(x_enc_4, None, None, None, None)   # (B, 51, pred_len)
         out_8 = self.forcast_8(x_enc_8, None, None, None, None)   # (B, 51, pred_len)
 
-        out = (out_1 * 0.5) + (out_2 * 0.3) + (out_4 * 0.2) + (out_8 * 0.1)      # (B, 51, pred_len)
+        out = (out_1 * 0.4) + (out_2 * 0.3) + (out_4 * 0.2) + (out_8 * 0.1)      # (B, 51, pred_len)
         
         return out
