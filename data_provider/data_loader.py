@@ -463,8 +463,8 @@ class DACONLoader(Dataset):
         data = self.scaler.transform(data)
         self.test = self.scaler.transform(test_data)
 
+        data_len = len(data)
         self.train = data[:(int)(data_len * 0.9)]
-        data_len = len(self.train)
         self.val = data[(int)(data_len * 0.9):]
         self.test_labels = pd.read_csv(os.path.join(root_path, 'test_label.csv')).values[:, 1:]
 
