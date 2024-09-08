@@ -479,8 +479,10 @@ class DACONLoader(Dataset):
             return (self.val.shape[0] - self.win_size) // self.step + 1
         elif (self.flag == 'test'):
             return (self.test.shape[0] - self.win_size) // self.step + 1
-        else:
+        elif (self.flag == 'pred'):
             return (self.test.shape[0] - self.win_size) // self.step + 1
+        else:
+            raise NotImplementedError('Not implemented data flag')
 
     def __getitem__(self, index):
         index = index * self.step
@@ -500,11 +502,13 @@ class DACONLoader(Dataset):
                 np.float32(self.test[index:index + self.seq_len]),
                 np.float32(self.test[index + self.seq_len:index + self.seq_len + self.pred_len]),
             )
-        else:
+        elif (self.flag == 'pred'):
             return (
                 np.float32(self.test[index:index + self.seq_len]),
                 np.float32(self.test[index + self.seq_len:index + self.seq_len + self.pred_len]),
             )
+        else:
+            raise NotImplementedError('Not implemented data flag')
 
 
 

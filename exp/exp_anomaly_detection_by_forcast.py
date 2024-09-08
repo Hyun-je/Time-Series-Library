@@ -82,7 +82,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
             for i, (batch_x, batch_y) in enumerate(tqdm(vali_loader, ncols=50)):
 
                 batch_x = batch_x.float().to(self.device)
-                batch_y = batch_x.float().to(self.device)
+                batch_y = batch_y.float().to(self.device)
 
                 outputs = self.model(batch_x, None, None, None)
 
@@ -135,7 +135,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
                 model_optim.zero_grad()
 
                 batch_x = batch_x.float().to(self.device)
-                batch_y = batch_x.float().to(self.device)
+                batch_y = batch_y.float().to(self.device)
 
                 outputs = self.model(batch_x, None, None, None)
 
@@ -199,7 +199,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
                 batch_x = batch_x.float().to(self.device)
-                batch_y = batch_x.float().to(self.device)
+                batch_y = batch_y.float().to(self.device)
 
                 # forcast
                 outputs = self.model(batch_x, None, None, None)
@@ -212,8 +212,8 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         train_energy = np.array(attens_energy)
         self.logger.info(f"train_energy : {train_energy.shape}")
-        threshold = np.percentile(train_energy, 100 - self.args.anomaly_ratio)
-        self.logger.info(f"Threshold : {threshold}")
+        self.threshold = np.percentile(train_energy, 100 - self.args.anomaly_ratio)
+        self.logger.info(f"Threshold : {self.threshold}")
 
         return
     
@@ -231,7 +231,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         test_labels = []
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
             batch_x = batch_x.float().to(self.device)
-            batch_y = batch_x.float().to(self.device)
+            batch_y = batch_y.float().to(self.device)
 
             # forcast
             outputs = self.model(batch_x, None, None, None)
