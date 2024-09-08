@@ -81,18 +81,15 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(vali_loader, ncols=50)):
 
-                # Downsample loaded data
-                batch_x = batch_x[:, ::self.args.downsample, :]
-                batch_y = batch_y[:, ::self.args.downsample, :]
-
                 batch_x = batch_x.float().to(self.device)
+                batch_y = batch_x.float().to(self.device)
 
                 outputs = self.model(batch_x, None, None, None)
 
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, :, f_dim:]
                 pred = outputs.detach().cpu()
-                true = batch_x.detach().cpu()
+                true = batch_y.detach().cpu()
 
                 loss = criterion(pred, true)
                 total_loss.append(loss)
@@ -202,15 +199,14 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(tqdm(train_loader, ncols=50)):
 
-                # Downsample loaded data
-                batch_x = batch_x[:, ::self.args.downsample, :]
-                batch_y = batch_y[:, ::self.args.downsample, :]
-
                 batch_x = batch_x.float().to(self.device)
-                # reconstruction
+                batch_y = batch_x.float().to(self.device)
+
+                # forcast
                 outputs = self.model(batch_x, None, None, None)
+
                 # criterion
-                score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
+                score = torch.mean(self.anomaly_criterion(batch_x, batch_y), dim=-1)
                 score = score.detach().cpu().numpy()
                 attens_energy.append(score)
 
