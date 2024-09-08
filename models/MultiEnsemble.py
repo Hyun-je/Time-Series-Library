@@ -8,10 +8,10 @@ from models.DLinear import Model as DLinear
 from layers.Autoformer_EncDec import series_decomp
 
 
-class MultiEnsemble(torch.nn.Module):
+class Model(torch.nn.Module):
 
     def __init__(self, configs):
-        super(MultiEnsemble, self).__init__()
+        super(Model, self).__init__()
 
         if configs.seq_len % 8 != 0:
             raise ValueError('seq_len must be divisible by 8')
