@@ -70,11 +70,13 @@ class Model(torch.nn.Module):
         x_enc_4 = x_enc[:, ::4, :]   # (B, 51, L//4)
         x_enc_8 = x_enc[:, ::8, :]   # (B, 51, L//8)
 
+        # Forecast for each downsampled sequence
         out_1 = self.forcast_1(x_enc_1, None, None, None, None)   # (B, 51, pred_len)
         out_2 = self.forcast_2(x_enc_2, None, None, None, None)   # (B, 51, pred_len)
         out_4 = self.forcast_4(x_enc_4, None, None, None, None)   # (B, 51, pred_len)
         out_8 = self.forcast_8(x_enc_8, None, None, None, None)   # (B, 51, pred_len)
 
+        # Combine the forecast
         out = (out_1 * 0.4) + (out_2 * 0.3) + (out_4 * 0.2) + (out_8 * 0.1)      # (B, 51, pred_len)
         
         return out
