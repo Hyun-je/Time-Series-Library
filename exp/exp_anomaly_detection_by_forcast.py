@@ -227,8 +227,7 @@ class Exp_Anomaly_Detection_By_Forcast(Exp_Basic):
 
         pred_data, pred_loader = self._get_data(flag='pred')
 
-        attens_energy = []
-        test_labels = []
+        attens_energy = [np.zeros(self.args.seq_len)]
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
             batch_x = batch_x.float().to(self.device)
             batch_y = batch_y.float().to(self.device)
