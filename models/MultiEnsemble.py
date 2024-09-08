@@ -14,7 +14,7 @@ class BasicForcaster(torch.nn.Module):
         self.encoder = torch.nn.Linear(configs.seq_len, configs.pred_len)
 
     def forward(self, x_enc, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
-        out = self.encoder(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
+        out = self.encoder(x_enc)
         return out
 
 
@@ -61,14 +61,14 @@ class Model(torch.nn.Module):
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
 
         B = x_enc.shape[0]  # batch size
-        C = x_enc.shape[1]  # number of channels
-        L = x_enc.shape[2]  # length of sequence
+        L = x_enc.shape[1]  # length of sequence
+        C = x_enc.shape[2]  # number of channels
 
         # Downsampling sequence
-        x_enc_1 = x_enc[:, :, ::1]   # (B, 51, L//1)
-        x_enc_2 = x_enc[:, :, ::2]   # (B, 51, L//2)
-        x_enc_4 = x_enc[:, :, ::4]   # (B, 51, L//4)
-        x_enc_8 = x_enc[:, :, ::8]   # (B, 51, L//8)
+        x_enc_1 = x_enc[:, ::1, :]   # (B, 51, L//1)
+        x_enc_2 = x_enc[:, ::2, :]   # (B, 51, L//2)
+        x_enc_4 = x_enc[:, ::4, :]   # (B, 51, L//4)
+        x_enc_8 = x_enc[:, ::8, :]   # (B, 51, L//8)
 
         out_1 = self.forcast_1(x_enc_1, None, None, None, None)   # (B, 51, pred_len)
         out_2 = self.forcast_2(x_enc_2, None, None, None, None)   # (B, 51, pred_len)
