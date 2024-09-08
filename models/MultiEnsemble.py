@@ -48,23 +48,23 @@ class Model(torch.nn.Module):
         self.configs_8.enc_in = 51
         self.forcast_8 = DLinear(self.configs_8)
 
-    def forward(self, x):
+    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
 
-        B = x.shape[0]  # batch size
-        C = x.shape[1]  # number of channels
-        L = x.shape[2]  # length of sequence
+        B = x_enc.shape[0]  # batch size
+        C = x_enc.shape[1]  # number of channels
+        L = x_enc.shape[2]  # length of sequence
 
         # Downsampling sequence
-        x_1 = x[:, :, ::1]   # (B, 51, L//1)
-        x_2 = x[:, :, ::2]   # (B, 51, L//2)
-        x_4 = x[:, :, ::4]   # (B, 51, L//4)
-        x_8 = x[:, :, ::8]   # (B, 51, L//8)
+        x_enc_1 = x_enc[:, :, ::1]   # (B, 51, L//1)
+        x_enc_2 = x_enc[:, :, ::2]   # (B, 51, L//2)
+        x_enc_4 = x_enc[:, :, ::4]   # (B, 51, L//4)
+        x_enc_8 = x_enc[:, :, ::8]   # (B, 51, L//8)
 
-        y_1 = self.forcast_1(x_1)   # (B, 51, pred_len)
-        y_2 = self.forcast_2(x_2)   # (B, 51, pred_len)
-        y_4 = self.forcast_4(x_4)   # (B, 51, pred_len)
-        y_8 = self.forcast_8(x_8)   # (B, 51, pred_len)
+        out_1 = self.forcast_1(x_enc_1)   # (B, 51, pred_len)
+        out_2 = self.forcast_2(x_enc_2)   # (B, 51, pred_len)
+        out_4 = self.forcast_4(x_enc_4)   # (B, 51, pred_len)
+        out_8 = self.forcast_8(x_enc_8)   # (B, 51, pred_len)
 
-        y = (y_1 * 0.5) + (y_2 * 0.3) + (y_4 * 0.2) + (y_8 * 0.1)      # (B, 51, pred_len)
+        out = (out_1 * 0.5) + (out_2 * 0.3) + (out_4 * 0.2) + (out_8 * 0.1)      # (B, 51, pred_len)
         
-        return y
+        return out
