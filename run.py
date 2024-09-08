@@ -5,6 +5,7 @@ from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
 from exp.exp_imputation import Exp_Imputation
 from exp.exp_short_term_forecasting import Exp_Short_Term_Forecast
 from exp.exp_anomaly_detection import Exp_Anomaly_Detection
+from exp.exp_anomaly_detection_by_forcast import Exp_Anomaly_Detection_By_Forcast
 from exp.exp_classification import Exp_Classification
 from utils.print_args import print_args
 import random
@@ -165,6 +166,8 @@ if __name__ == '__main__':
         Exp = Exp_Imputation
     elif args.task_name == 'anomaly_detection':
         Exp = Exp_Anomaly_Detection
+    elif args.task_name == 'anomaly_detection_by_forcast':
+        Exp = Exp_Anomaly_Detection_By_Forcast
     elif args.task_name == 'classification':
         Exp = Exp_Classification
     else:

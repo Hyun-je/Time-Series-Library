@@ -1,21 +1,22 @@
 # export CUDA_VISIBLE_DEVICES=1
 
 python -u run.py \
-  --task_name anomaly_detection \
+  --task_name anomaly_detection_by_forcast \
   --is_training 1 \
   --root_path ./dataset/DACON \
   --model_id DACON \
-  --model Autoformer \
-  --data PSMSingle \
+  --model MultiEnsemble \
+  --data DACON \
   --features M \
-  --seq_len 100 \
-  --pred_len 0 \
+  --seq_len 1000 \
+  --pred_len 1 \
   --downsample 1 \
   --d_model 128 \
   --d_ff 128 \
   --e_layers 3 \
-  --enc_in 1 \
-  --c_out 1 \
+  --enc_in 51 \
+  --c_out 51 \
+  --dropout 0.1 \
   --top_k 3 \
   --anomaly_ratio 1 \
   --batch_size 256 \

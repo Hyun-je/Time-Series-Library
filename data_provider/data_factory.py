@@ -1,4 +1,4 @@
-from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, Dataset_M4, PSMSegLoader, PSMSingleLoader, MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, UEAloader
+from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, Dataset_M4, PSMSegLoader, DACONLoader, MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, UEAloader
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
@@ -10,7 +10,7 @@ data_dict = {
     'custom': Dataset_Custom,
     'm4': Dataset_M4,
     'PSM': PSMSegLoader,
-    'PSMSingle': PSMSingleLoader,
+    'DACON': DACONLoader,
     'MSL': MSLSegLoader,
     'SMAP': SMAPSegLoader,
     'SMD': SMDSegLoader,
@@ -34,6 +34,23 @@ def data_provider(args, flag):
             args = args,
             root_path=args.root_path,
             win_size=args.seq_len * args.downsample,
+            flag=flag,
+        )
+        print(flag, len(data_set))
+        data_loader = DataLoader(
+            data_set,
+            batch_size=batch_size,
+            shuffle=shuffle_flag,
+            num_workers=args.num_workers,
+            drop_last=drop_last)
+        return data_set, data_loader
+    elif args.task_name == 'anomaly_detection_by_forcast':
+        drop_last = False
+        data_set = Data(
+            args = args,
+            root_path=args.root_path,
+            seq_len=args.seq_len,
+            pred_len=args.pred_len,
             flag=flag,
         )
         print(flag, len(data_set))
