@@ -444,7 +444,7 @@ class PSMSegLoader(Dataset):
 class DACONLoader(Dataset):
     def __init__(self, args, root_path, seq_len, pred_len, flag="train"):
         self.flag = flag
-        self.step = {'train': 1, 'val': 20, 'test':  (seq_len, pred_len) // 4, 'pred': (seq_len, pred_len) // 2}[flag]
+        self.step = {'train': 1, 'val': 20, 'test':  (seq_len + pred_len) // 4, 'pred': (seq_len + pred_len) // 2}[flag]
 
         self.seq_len = seq_len
         self.pred_len = pred_len
