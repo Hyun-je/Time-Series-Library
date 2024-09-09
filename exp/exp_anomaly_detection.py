@@ -285,7 +285,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         pred_data, pred_loader = self._get_data(flag='pred')
 
         win_size = self.args.seq_len * self.args.downsample
-        attens_energy = [np.zeros(win_size - 1)]
+        attens_energy = [np.zeros(self.args.downsample - 1), np.zeros(win_size - 1)]
         test_labels = [np.zeros(win_size - 1)]
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
 
@@ -316,8 +316,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
             test_labels.append(batch_y[:,-1:,:].reshape(-1))
 
         pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
-        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1).unsqueeze(0)
-        attens_energy = pool(attens_energy)
+        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
+        if True:    # Averaging
+            attens_energy = np.expand_dims(attens_energy, 0)
+            attens_energy = pool(torch.tensor(attens_energy)).reshape(-1)
         test_energy = np.array(attens_energy)
 
         # (3) evaluation on the test set
