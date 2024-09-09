@@ -391,22 +391,27 @@ class PSMSegLoader(Dataset):
         self.flag = flag
         self.step = {'train': step, 'val': 20, 'test':  win_size // 4, 'pred': 1}[flag]
         self.win_size = win_size
+
+        train_data = pd.read_csv(os.path.join(root_path, 'train.csv'))
+        train_data = train_data.values[:, 1:]   # remove timestamp
+        train_data = np.nan_to_num(train_data)
+
         self.scaler = StandardScaler()
-        data = pd.read_csv(os.path.join(root_path, 'train.csv'))
-        data = data.values[:, 1:]
-        data = np.nan_to_num(data)
-        self.scaler.fit(data)
-        data = self.scaler.transform(data)
-        test_data = pd.read_csv(os.path.join(root_path, 'test.csv'))
-        test_data = test_data.values[:, 1:]
-        test_data = np.nan_to_num(test_data)
-        self.test = self.scaler.transform(test_data)
-        self.train = data
-        data_len = len(self.train)
-        self.val = self.train[(int)(data_len * 0.8):]
-        self.test_labels = pd.read_csv(os.path.join(root_path, 'test_label.csv')).values[:, 1:]
-        print("test:", self.test.shape)
+        self.scaler.fit(train_data)
+        train_data = self.scaler.transform(train_data)
+
+        data_len = len(train_data)
+        self.train = train_data[:(int)(data_len * 0.9)]
+        self.val = train_data[(int)(data_len * 0.9):]
         print("train:", self.train.shape)
+        print("val:", self.val.shape)
+        
+        if flag == 'test' or flag == 'pred':
+            test_data = pd.read_csv(os.path.join(root_path, 'test.csv'))
+            test_data = test_data.values[:, 1:]    # remove timestamp
+            test_data = np.nan_to_num(test_data)
+            self.test = self.scaler.transform(test_data)
+            print("test:", self.test.shape)
 
     def __len__(self):
         if self.flag == "train":
@@ -415,8 +420,10 @@ class PSMSegLoader(Dataset):
             return (self.val.shape[0] - self.win_size) // self.step + 1
         elif (self.flag == 'test'):
             return (self.test.shape[0] - self.win_size) // self.step + 1
-        else:
+        elif (self.flag == 'pred'):
             return (self.test.shape[0] - self.win_size) // self.step + 1
+        else:
+            raise NotImplementedError('Not implemented data flag')
 
     def __getitem__(self, index):
         index = index * self.step
@@ -435,11 +442,14 @@ class PSMSegLoader(Dataset):
                 np.float32(self.test[index:index + self.win_size]),
                 np.float32(self.test_labels[index:index + self.win_size])
             )
-        else:
+        elif (self.flag == 'pred'):
             return (
                 np.float32(self.test[index:index + self.win_size]),
                 np.float32(self.test_labels[index:index + self.win_size])
             )
+        else:
+            raise NotImplementedError('Not implemented data flag')
+        
 
 class DACONLoader(Dataset):
     def __init__(self, args, root_path, seq_len, pred_len, flag="train"):
