@@ -93,14 +93,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
                         + criterion(output_2, batch_x[:,1::2,:]) * 1.0 \
                         + criterion(output_4, batch_x[:,3::4,:]) * 1.0 \
                         + criterion(output_8, batch_x[:,7::8,:]) * 1.0
-
                 else:
                     outputs = self.model(batch_x, None, None, None)
-
-                    pred = outputs.detach().cpu()
-                    true = batch_x.detach().cpu()
-
-                    loss = criterion(pred, true)
+                    loss = criterion(outputs, batch_x)
+                loss = loss.detach().cpu()
                 total_loss.append(loss)
         total_loss = np.average(total_loss)
         self.model.train()
