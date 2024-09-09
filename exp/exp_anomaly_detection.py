@@ -154,16 +154,19 @@ class Exp_Anomaly_Detection(Exp_Basic):
                     batch_x_masked = batch_x
                     batch_x_original = batch_x
 
+                multiscale = False
+                if multiscale:
+                    output_1, output_2, output_4, output_8 = self.model(batch_x_masked, None, None, None)
+                    loss = train_criterion(output_1, batch_x_original) * 0.1 \
+                        + train_criterion(output_2, batch_x_original[:,1::2,:]) * 0.1 \
+                        + train_criterion(output_4, batch_x_original[:,3::4,:]) * 0.1 \
+                        + train_criterion(output_8, batch_x_original[:,7::8,:]) * 0.1 \
+                        + train_criterion((output_1[:,-1:,:] + output_2[:,-1:,:] + output_4[:,-1:,:] + output_8[:,-1:,:])/4, batch_x_original[:,-1:,:])
 
-                output_1, output_2, output_4, output_8 = self.model(batch_x_masked, None, None, None)
-
-                f_dim = -1 if self.args.features == 'MS' else 0
-                outputs = outputs[:, :, f_dim:]
-                loss = train_criterion(output_1, batch_x_original) * 0.1 \
-                    + train_criterion(output_2, batch_x_original[:,1::2,:]) * 0.1 \
-                    + train_criterion(output_4, batch_x_original[:,3::4,:]) * 0.1 \
-                    + train_criterion(output_8, batch_x_original[:,7::8,:]) * 0.1 \
-                    + train_criterion((output_1[:,-1:,:] + output_2[:,-1:,:] + output_4[:,-1:,:] + output_8[:,-1:,:])/4, batch_x_original[:,-1:,:])
+                else:
+                    output = self.model(batch_x_masked, None, None, None)
+                    loss = train_criterion(output, batch_x_original) * 0.1 \
+                        + train_criterion(output[:,-1:,:], batch_x_original[:,-1:,:])
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -229,7 +232,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 # reconstruction
                 outputs = self.model(batch_x, None, None, None)
                 # criterion
-                score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
+                score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
                 score = score.detach().cpu().numpy()
                 attens_energy.append(score)
 
@@ -249,10 +252,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
             # reconstruction
             outputs = self.model(batch_x, None, None, None)
             # criterion
-            score = torch.mean(self.anomaly_criterion(batch_x, outputs), dim=-1)
+            score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
             score = score.detach().cpu().numpy()
             attens_energy.append(score)
-            test_labels.append(batch_y)
+            test_labels.append(batch_y[:,-1:,:])
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
@@ -303,21 +306,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
             outputs = self.model(batch_x, None, None, None)
 
             # criterion
-            # win_size = batch_x.shape[1]
-            # if i == 0:
-            #     x_slice_range = range(0, win_size//4*3)
-            #     y_slice_range = range(0, win_size*self.args.downsample//4*3)
-            # elif i == len(pred_loader) - 1:
-            #     x_slice_range = range(win_size//4, win_size)
-            #     y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
-            # else:
-            #     x_slice_range = range(win_size//4, win_size//4*3)
-            #     y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample//4*3)
-
             score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
-            score = score.detach().cpu().numpy().reshape(-1)
+            score = score.detach().cpu().numpy()
             attens_energy.append(score)
-            test_labels.append(batch_y[:,-1:,:].reshape(-1))
+            test_labels.append(batch_y[:,-1:,:])
 
         pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
