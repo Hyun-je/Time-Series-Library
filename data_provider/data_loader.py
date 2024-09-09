@@ -411,7 +411,9 @@ class PSMSegLoader(Dataset):
             test_data = test_data.values[:, 1:]    # remove timestamp
             test_data = np.nan_to_num(test_data)
             self.test = self.scaler.transform(test_data)
+            self.test_labels = pd.read_csv(os.path.join(root_path, 'test_label.csv')).values[:, 1:]
             print("test:", self.test.shape)
+            print("test_labels:", self.test_labels.shape)
 
     def __len__(self):
         if self.flag == "train":
