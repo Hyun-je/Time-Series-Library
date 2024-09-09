@@ -389,7 +389,7 @@ class Dataset_M4(Dataset):
 class PSMSegLoader(Dataset):
     def __init__(self, args, root_path, win_size, step=1, flag="train"):
         self.flag = flag
-        self.step = {'train': step, 'val': 20, 'test':  win_size // 4, 'pred': win_size // 2}[flag]
+        self.step = {'train': step, 'val': 20, 'test':  win_size // 4, 'pred': 1}[flag]
         self.win_size = win_size
         self.scaler = StandardScaler()
         data = pd.read_csv(os.path.join(root_path, 'train.csv'))

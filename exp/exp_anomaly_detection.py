@@ -276,7 +276,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
     
     def prediction(self, setting):
 
-        self.args.batch_size = 1
+        # self.args.batch_size = self.args.downsample
 
         print('loading model')
         self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
@@ -284,13 +284,14 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
         pred_data, pred_loader = self._get_data(flag='pred')
 
-        attens_energy = []
-        test_labels = []
+        win_size = self.args.seq_len * self.args.downsample
+        attens_energy = [np.zeros(win_size - 1)]
+        test_labels = [np.zeros(win_size - 1)]
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader, ncols=50)):
 
             # Downsample loaded data
             batch_x = batch_x[:, ::self.args.downsample, :]
-            batch_y = batch_y[:, :, :]
+            batch_y = batch_y[:, ::self.args.downsample, :]
 
             batch_x = batch_x.float().to(self.device)
 
@@ -298,23 +299,25 @@ class Exp_Anomaly_Detection(Exp_Basic):
             outputs = self.model(batch_x, None, None, None)
 
             # criterion
-            win_size = batch_x.shape[1]
-            if i == 0:
-                x_slice_range = range(0, win_size//4*3)
-                y_slice_range = range(0, win_size*self.args.downsample//4*3)
-            elif i == len(pred_loader) - 1:
-                x_slice_range = range(win_size//4, win_size)
-                y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
-            else:
-                x_slice_range = range(win_size//4, win_size//4*3)
-                y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample//4*3)
+            # win_size = batch_x.shape[1]
+            # if i == 0:
+            #     x_slice_range = range(0, win_size//4*3)
+            #     y_slice_range = range(0, win_size*self.args.downsample//4*3)
+            # elif i == len(pred_loader) - 1:
+            #     x_slice_range = range(win_size//4, win_size)
+            #     y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample)
+            # else:
+            #     x_slice_range = range(win_size//4, win_size//4*3)
+            #     y_slice_range = range(win_size*self.args.downsample//4, win_size*self.args.downsample//4*3)
 
-            score = torch.mean(self.anomaly_criterion(batch_x[:,x_slice_range,:], outputs[:,x_slice_range,:]), dim=-1)
+            score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
             score = score.detach().cpu().numpy().reshape(-1)
             attens_energy.append(score)
-            test_labels.append(batch_y[:,y_slice_range,:].reshape(-1))
+            test_labels.append(batch_y[:,-1:,:].reshape(-1))
 
-        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
+        pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
+        attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1).unsqueeze(0)
+        attens_energy = pool(attens_energy)
         test_energy = np.array(attens_energy)
 
         # (3) evaluation on the test set
@@ -331,7 +334,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
             pred = (test_energy > threshold).astype(int)
             pred = np.array(pred)
-            pred = np.repeat(pred, self.args.downsample, axis=0) # Upsample
+            # pred = np.repeat(pred, self.args.downsample, axis=0) # Upsample
             self.logger.info(f"pred: {pred.shape}")
             
             # Calculate TaPR
