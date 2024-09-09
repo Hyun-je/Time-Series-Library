@@ -155,11 +155,15 @@ class Exp_Anomaly_Detection(Exp_Basic):
                     batch_x_original = batch_x
 
 
-                outputs = self.model(batch_x_masked, None, None, None)
+                output_1, output_2, output_4, output_8 = self.model(batch_x_masked, None, None, None)
 
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, :, f_dim:]
-                loss = train_criterion(outputs, batch_x_original)
+                loss = train_criterion(output_1, batch_x_original) * 0.1 \
+                    + train_criterion(output_2, batch_x_original[:,1::2,:]) * 0.1 \
+                    + train_criterion(output_4, batch_x_original[:,3::4,:]) * 0.1 \
+                    + train_criterion(output_8, batch_x_original[:,7::8,:]) * 0.1 \
+                    + train_criterion((output_1[:,-1:,:] + output_2[:,-1:,:] + output_4[:,-1:,:] + output_8[:,-1:,:])/4, batch_x_original[:,-1:,:])
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:

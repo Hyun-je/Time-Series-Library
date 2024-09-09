@@ -7,6 +7,42 @@ import numpy as np
 import copy
 
 
+class DownsampleConv(nn.Module):
+
+    def __init__(self, in_channels, stride=2):
+        super(DownsampleConv, self).__init__()
+        self.conv = nn.Conv1d(in_channels, in_channels, kernel_size=stride, stride=stride)
+        self.bn = nn.BatchNorm1d(in_channels)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        return x
+    
+class DownsampleAvg(nn.Module):
+
+    def __init__(self, in_channels, stride=2):
+        super(DownsampleAvg, self).__init__()
+        self.avg = nn.AvgPool1d(kernel_size=stride, stride=stride)
+
+    def forward(self, x):
+        x = self.avg(x)
+        return x
+    
+class DownsampleNearest(nn.Module):
+
+    def __init__(self, in_channels, stride=2):
+        super(DownsampleNearest, self).__init__()
+        self.stride = stride
+
+    def forward(self, x):
+        return x[:,:,::self.stride]
+
+
+
+
 class Model(nn.Module):
 
     def __init__(self, configs):
@@ -16,21 +52,9 @@ class Model(nn.Module):
         self.label_len = configs.label_len
         self.pred_len = configs.pred_len
 
-        self.downsample_1_to_2 = nn.Sequential(
-            nn.Conv1d(configs.enc_in, configs.enc_in, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm1d(configs.enc_in),
-            nn.ReLU(),
-        )
-        self.downsample_2_to_4 = nn.Sequential(
-            nn.Conv1d(configs.enc_in, configs.enc_in, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm1d(configs.enc_in),
-            nn.ReLU(),
-        )
-        self.downsample_4_to_8 = nn.Sequential(
-            nn.Conv1d(configs.enc_in, configs.enc_in, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm1d(configs.enc_in),
-            nn.ReLU(),
-        )
+        # self.downsample_1_to_2 = DownsampleNearest(in_channels=configs.enc_in, stride=2)
+        # self.downsample_2_to_4 = DownsampleNearest(in_channels=configs.enc_in, stride=2)
+        # self.downsample_4_to_8 = DownsampleNearest(in_channels=configs.enc_in, stride=2)
         
         configs.seq_len = configs.seq_len
         configs.label_len = configs.label_len
@@ -55,48 +79,26 @@ class Model(nn.Module):
         configs4.pred_len = configs4.pred_len // 8
         self.sub_model4 = Autoformer(configs4)
 
-        self.upsample_8_to_4 = nn.Sequential(
-            nn.ConvTranspose1d(configs.enc_in, configs.c_out, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm1d(configs.c_out),
-            nn.ReLU(),
-        )
-        self.upsample_4_to_2 = nn.Sequential(
-            nn.ConvTranspose1d(configs.enc_in, configs.c_out, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm1d(configs.c_out),
-            nn.ReLU(),
-        )
-        self.upsample_2_to_1 = nn.Sequential(
-            nn.ConvTranspose1d(configs.enc_in, configs.c_out, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm1d(configs.c_out),
-            nn.ReLU(),
-        )
-
-        configs5 = copy.deepcopy(configs)
-        configs5.seq_len = configs4.seq_len
-        configs5.label_len = configs4.label_len
-        configs5.pred_len = configs4.pred_len
-        self.sub_model5 = Autoformer(configs5)
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
 
+        B = x_enc.shape[0]  # batch size
+        L = x_enc.shape[1]  # length of sequence
+        C = x_enc.shape[2]  # number of channels
+
+        # x1 = x_enc
+        # x2 = self.downsample_1_to_2(x1.permute(0,2,1)).permute(0,2,1)
+        # x4 = self.downsample_2_to_4(x2.permute(0,2,1)).permute(0,2,1)
+        # x8 = self.downsample_4_to_8(x4.permute(0,2,1)).permute(0,2,1)
+
         x1 = x_enc
-        x2 = self.downsample_1_to_2(x1.permute(0,2,1)).permute(0,2,1)
-        x4 = self.downsample_2_to_4(x2.permute(0,2,1)).permute(0,2,1)
-        x8 = self.downsample_4_to_8(x4.permute(0,2,1)).permute(0,2,1)
+        x2 = x1[:, 1::2, :]
+        x4 = x2[:, 1::2, :]
+        x8 = x4[:, 1::2, :]
         
         x8_enc = self.sub_model4(x8, None, None, None, None)
         x4_enc = self.sub_model3(x4, None, None, None, None)
         x2_enc = self.sub_model2(x2, None, None, None, None)
         x1_enc = self.sub_model1(x1, None, None, None, None)
 
-        x4_up = self.upsample_8_to_4(x8_enc.permute(0,2,1)).permute(0,2,1)
-        x2_up = self.upsample_4_to_2(x4_enc.permute(0,2,1)).permute(0,2,1)
-        x1_up = self.upsample_2_to_1(x2_enc.permute(0,2,1)).permute(0,2,1)
-
-        x4_up = x4_enc + x4_up
-        x2_up = x2_enc + x2_up
-        x1_up = x1_enc + x1_up
-
-        output = self.sub_model5(x1, None, None, None, None)
-
-        return output
+        return x1_enc, x2_enc, x4_enc, x8_enc
