@@ -228,10 +228,20 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 batch_y = batch_y[:, ::self.args.downsample, :]
 
                 batch_x = batch_x.float().to(self.device)
-                # reconstruction
-                outputs = self.model(batch_x, None, None, None)
-                # criterion
-                score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
+                if self.args.multiscale:
+                    output_1, output_2, output_4, output_8 = self.model(batch_x, None, None, None)
+                    score = torch.mean(
+                        self.anomaly_criterion(batch_x[:,-1:,:], output_1[:,-1:,:]) \
+                        + self.anomaly_criterion(batch_x[:,-1:,:], output_2[:,-1:,:]) \
+                        + self.anomaly_criterion(batch_x[:,-1:,:], output_4[:,-1:,:]) \
+                        + self.anomaly_criterion(batch_x[:,-1:,:], output_8[:,-1:,:])
+                        , dim=-1
+                    )
+                else:
+                    # reconstruction
+                    outputs = self.model(batch_x, None, None, None)
+                    # criterion
+                    score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
                 score = score.detach().cpu().numpy().reshape(-1)
                 attens_energy.append(score)
 
