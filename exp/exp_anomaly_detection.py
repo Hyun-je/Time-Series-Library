@@ -92,8 +92,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 pred = outputs.detach().cpu()
                 true = batch_x.detach().cpu()
 
-                loss = criterion(pred, true) * 0.1 \
-                        + criterion(pred[:,-1:,:], true[:,-1:,:])
+                loss = criterion(pred, true)
                 total_loss.append(loss)
         total_loss = np.average(total_loss)
         self.model.train()
@@ -156,16 +155,13 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 multiscale = False
                 if multiscale:
                     output_1, output_2, output_4, output_8 = self.model(batch_x_masked, None, None, None)
-                    loss = train_criterion(output_1, batch_x_original) * 0.1 \
-                        + train_criterion(output_2, batch_x_original[:,1::2,:]) * 0.1 \
-                        + train_criterion(output_4, batch_x_original[:,3::4,:]) * 0.1 \
-                        + train_criterion(output_8, batch_x_original[:,7::8,:]) * 0.1 \
-                        + train_criterion((output_1[:,-1:,:] + output_2[:,-1:,:] + output_4[:,-1:,:] + output_8[:,-1:,:])/4, batch_x_original[:,-1:,:])
-
+                    loss = train_criterion(output_1, batch_x_original) * 1.0 \
+                        + train_criterion(output_2, batch_x_original[:,1::2,:]) * 1.0 \
+                        + train_criterion(output_4, batch_x_original[:,3::4,:]) * 1.0 \
+                        + train_criterion(output_8, batch_x_original[:,7::8,:]) * 1.0
                 else:
                     output = self.model(batch_x_masked, None, None, None)
-                    loss = train_criterion(output, batch_x_original) * 0.1 \
-                        + train_criterion(output[:,-1:,:], batch_x_original[:,-1:,:])
+                    loss = train_criterion(output, batch_x_original)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -232,7 +228,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 outputs = self.model(batch_x, None, None, None)
                 # criterion
                 score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
-                score = score.detach().cpu().numpy()
+                score = score.detach().cpu().numpy().reshape(-1)
                 attens_energy.append(score)
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
@@ -252,9 +248,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
             outputs = self.model(batch_x, None, None, None)
             # criterion
             score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
-            score = score.detach().cpu().numpy()
+            score = score.detach().cpu().numpy().reshape(-1)
             attens_energy.append(score)
-            test_labels.append(batch_y[:,-1:,:])
+            test_labels.append(batch_y[:,-1:,:].reshape(-1))
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
@@ -306,9 +302,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
             # criterion
             score = torch.mean(self.anomaly_criterion(batch_x[:,-1:,:], outputs[:,-1:,:]), dim=-1)
-            score = score.detach().cpu().numpy()
+            score = score.detach().cpu().numpy().reshape(-1)
             attens_energy.append(score)
-            test_labels.append(batch_y[:,-1:,:])
+            test_labels.append(batch_y[:,-1:,:].reshape(-1))
 
         pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
