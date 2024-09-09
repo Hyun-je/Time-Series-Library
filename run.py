@@ -93,6 +93,7 @@ if __name__ == '__main__':
                         help='down sampling method, only support avg, max, conv')
     parser.add_argument('--seg_len', type=int, default=48,
                         help='the length of segmen-wise iteration of SegRNN')
+    parser.add_argument('--multiscale', action='store_true', help='whether to use multiscale feature attention', default=False)
 
     # optimization
     parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')

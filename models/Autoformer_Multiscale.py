@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models.Autoformer import Model as Autoformer
+from models.FEDformer import Model as FEDformer
+from models.TimesNet import Model as TimesNet
 import math
 import numpy as np
 import copy
