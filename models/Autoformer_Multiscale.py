@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from models.Autoformer import Model as Autoformer
 from models.FEDformer import Model as FEDformer
 from models.TimesNet import Model as TimesNet
+from models.DLinear import Model as DLinear
 import math
 import numpy as np
 import copy
@@ -73,13 +74,13 @@ class Model(nn.Module):
         configs3.seq_len = configs3.seq_len // 4
         configs3.label_len = configs3.label_len // 4
         configs3.pred_len = configs3.pred_len // 4
-        self.sub_model3 = Autoformer(configs3)
+        self.sub_model3 = FEDformer(configs3)
 
         configs4 = copy.deepcopy(configs)
         configs4.seq_len = configs4.seq_len // 8
         configs4.label_len = configs4.label_len // 8
         configs4.pred_len = configs4.pred_len // 8
-        self.sub_model4 = Autoformer(configs4)
+        self.sub_model4 = DLinear(configs4)
 
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
