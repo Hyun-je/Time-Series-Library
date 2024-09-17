@@ -45,10 +45,10 @@ class Decoder(nn.Module):
 
 
 # LSTM Auto-Encoder Class
-class LSTMAE(nn.Module):
-    def __init__(self, configs)
+class Model(nn.Module):
+    def __init__(self, configs):
     # def __init__(self, input_size, hidden_size, dropout_ratio, seq_len, use_act=True):
-        super(LSTMAE, self).__init__()
+        super(Model, self).__init__()
 
         self.input_size = configs.enc_in
         self.hidden_size = configs.d_model
