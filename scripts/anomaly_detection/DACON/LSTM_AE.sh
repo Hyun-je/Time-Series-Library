@@ -12,7 +12,7 @@ python -u run.py \
   --pred_len 0 \
   --downsample 1 \
   --d_model 128 \
-  --d_ff 128 \
+  --d_ff 32 \
   --e_layers 3 \
   --enc_in 51 \
   --c_out 51 \
