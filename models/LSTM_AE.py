@@ -11,11 +11,11 @@ class Encoder(nn.Module):
         self.dropout = dropout
         self.seq_len = seq_len
 
-        self.lstm_enc = nn.LSTM(input_size=input_size, hidden_size=hidden_size, dropout=dropout, batch_first=True)
+        self.lstm_enc = nn.GRU(input_size=input_size, hidden_size=hidden_size, dropout=dropout, batch_first=True)
         self.fc = nn.Linear(hidden_size, latent_size)
 
     def forward(self, x):
-        out, (last_h_state, last_c_state) = self.lstm_enc(x)
+        out, last_h_state = self.lstm_enc(x)
         x_enc = last_h_state.squeeze(dim=0)
         latent = self.fc(x_enc)
         return latent, out
@@ -33,12 +33,12 @@ class Decoder(nn.Module):
         self.use_act = use_act  # Parameter to control the last sigmoid activation - depends on the normalization used.
         self.act = nn.Sigmoid()
 
-        self.lstm_dec = nn.LSTM(input_size=latent_size, hidden_size=hidden_size, dropout=dropout, batch_first=True)
+        self.lstm_dec = nn.GRU(input_size=latent_size, hidden_size=hidden_size, dropout=dropout, batch_first=True)
         self.fc = nn.Linear(hidden_size, input_size)
 
     def forward(self, z):
         # z = z.unsqueeze(1).repeat(1, self.seq_len, 1)
-        dec_out, (hidden_state, cell_state) = self.lstm_dec(z)
+        dec_out, hidden_state = self.lstm_dec(z)
         dec_out = self.fc(dec_out)
         if self.use_act:
             dec_out = self.act(dec_out)
@@ -77,3 +77,25 @@ class Model(nn.Module):
         elif return_enc_out:
             return x_dec, enc_out
         return x_dec
+    
+
+
+if __name__ == '__main__':
+
+    # Model Configuration
+    class Configs:
+        def __init__(self):
+            self.enc_in = 51
+            self.d_model = 128
+            self.d_ff = 32
+            self.dropout = 0.1
+            self.seq_len = 10
+
+    # Model Initialization
+    model = Model(Configs())
+    # print(model)
+    # print("Model Initialized Successfully!")
+
+    input = torch.randn(32, 10, 51)
+    output = model(input, None, None, None)
+    print(output.shape)
