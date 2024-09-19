@@ -2,7 +2,7 @@ import os
 import torch
 from models import Autoformer, Autoformer_Multiscale, MultiEnsemble, Transformer, TimesNet, Nonstationary_Transformer, DLinear, FEDformer, \
     Informer, LightTS, Reformer, ETSformer, Pyraformer, PatchTST, MICN, Crossformer, FiLM, iTransformer, \
-    Koopa, TiDE, FreTS, TimeMixer, TSMixer, SegRNN, MambaSimple, TemporalFusionTransformer,  LSTM_AE
+    Koopa, TiDE, FreTS, TimeMixer, TSMixer, SegRNN, MambaSimple, TemporalFusionTransformer,  LSTM_AE, CONV_AE
 
 
 class Exp_Basic(object):
@@ -36,6 +36,7 @@ class Exp_Basic(object):
             'SegRNN': SegRNN,
             'TemporalFusionTransformer': TemporalFusionTransformer,
             'LSTM_AE': LSTM_AE,
+            'CONV_AE': CONV_AE,
         }
         if args.model == 'Mamba':
             print('Please make sure you have successfully installed mamba_ssm')
