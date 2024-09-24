@@ -301,6 +301,10 @@ class Exp_Anomaly_Detection(Exp_Basic):
         self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint_best.pth')))
         self.model.eval()
 
+        folder_path = './test_results/' + setting + '/'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
         pred_data, pred_loader = self._get_data(flag='pred')
 
         win_size = self.args.seq_len * self.args.downsample
@@ -331,9 +335,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
                 attens_energy.append(score)
                 test_labels.append(batch_y[:,-1:,:].reshape(-1))
 
-            pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
             attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
             if True:    # Averaging
+                pool = torch.nn.AvgPool1d(self.args.downsample, stride=1, padding=0)
                 attens_energy = np.expand_dims(attens_energy, 0)
                 attens_energy = pool(torch.tensor(attens_energy)).reshape(-1)
             test_energy = np.array(attens_energy)
@@ -345,9 +349,23 @@ class Exp_Anomaly_Detection(Exp_Basic):
         gt = np.array(gt)
         self.logger.info(f"gt:   {gt.shape}")
 
+        def draw_prediction_results(gt, pred, test_energy, threshold, image_path):
+            print("Drawing the prediction results...")
+
+            plt.figure(figsize=(100, 15))
+            plt.tight_layout()
+            plt.grid(True, axis='x')
+
+            plt.plot(gt + 1, linewidth=1.0, color='magenta', alpha=1.0)
+            plt.plot(pred - 1, linewidth=1.0, color='cyan', alpha=1.0)
+            plt.plot(test_energy/threshold/2 - 4, linewidth=1.0, color='green', alpha=1.0)
+            plt.ylim(-5, 3)
+            
+            plt.savefig(image_path, dpi=300)
+
         best_TaPR = None
         best_threshold = None
-        threshold_list = [15.0]
+        threshold_list = [self.threshold * 0.75, self.threshold, self.threshold * 1.25, 15.0]
         for threshold in threshold_list:
 
             pred = (test_energy > threshold).astype(int)
@@ -360,6 +378,9 @@ class Exp_Anomaly_Detection(Exp_Basic):
             self.logger.info(f"Threshold: {threshold}")
             self.logger.info(f"prediction F1: {TaPR['f1']:.3f} (TaP: {TaPR['TaP']:.3f}, TaR: {TaPR['TaR']:.3f})")
             self.logger.info(f"탐지된 이상 상황 개수: {len(TaPR['Detected_Anomalies'])}")
+
+            # Visualize
+            draw_prediction_results(gt, pred, test_energy, threshold, f'{folder_path}/pred_th{threshold}.png')
 
             if best_TaPR is None or best_TaPR['f1'] < TaPR['f1']:
                 best_TaPR = TaPR
@@ -377,10 +398,6 @@ class Exp_Anomaly_Detection(Exp_Basic):
 
 
         # export results
-        folder_path = './test_results/' + setting + '/'
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-
         sample_submission = pd.read_csv("dataset/DACON/sample_submission.csv")
         sample_submission['anomaly'] = pred
         sample_submission.to_csv(f'{folder_path}/pred.csv', encoding='UTF-8-sig', index=False)
